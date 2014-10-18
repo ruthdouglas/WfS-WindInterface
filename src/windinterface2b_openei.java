@@ -1,30 +1,9 @@
 import com.google.gson.Gson;
 
 import java.awt.AWTException;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,7 +19,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -53,194 +31,202 @@ import java.util.TimerTask;
 import javax.servlet.http.HttpServlet;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JWindow;
-import javax.swing.SwingUtilities;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 @SuppressWarnings("serial")
-public class windinterface2b_openei extends HttpServlet implements ActionListener {
-	BufferedReader inputData;
+public class windinterface2b_openei extends HttpServlet {
+	//Conversion constants.....
+	final double windConvert = 7.2D;
+	final double speedConvert = 1.125D;
+	final double powerConvert = 0.12D;
+	final double voltsConvert = 0.03571428571428571D;
+	final double dayEnergyConvert = 0.2D;
+	//End constants....
+	//Per turbine vars
 	String[] inData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
 	String[][] avgData = new String[20][40];
-	 int sendToDBError = 1;
-	int sendToDBOptError = 1;
-	int avgCount = 0;
-	int maxAvgCount = 20;
 	double[] tenMinAvgData = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
 	double myDailyTotal = 0.0D;
-	boolean averagesReadyToPrint = false;
-	String mySysTitle;
-	String mySysID;
-	String mySerialNum;
-	String myDBURL;
-	String myMysqlURL;
-	String myMysqlUser;
-	String myMysqlPass;
-	String mySysName;
-	String myApiKey;
-	String myGMT_Offset;
-	String myPowerOffset;
-	public static String turbineName = "Test";
-	public static String turbineID = "10xxx";
-	public static String myPath = "resources/";
+
+
 	double power = 0.0D;
 	double wind = 0.0D;
 	double speed = 0.0D;
-	double windConvert = 7.2D;
-	double speedConvert = 1.125D;
-	double powerConvert = 0.12D;
-	double voltsConvert = 0.03571428571428571D;
-	double dayEnergyConvert = 0.2D;
 	String ts = "0000";
 	String ss = "0000";
 	String gs = "0000";
 	double dayEnergy = 35.0D;
 	double totEnergy = 10000.0D;
 	String volts = "250";
+
+	//End
+	BufferedReader inputData;
+	int sendToDBError = 1;
+	int sendToDBOptError = 1;
+	int avgCount = 0; //Used when printing avgs
+	int maxAvgCount = 20;  //Used when printing avgs
+	boolean averagesReadyToPrint = false;  //Used when printing avgs
+	String myDBURL;
+	String myMysqlURL;
+	String myMysqlUser;
+	String myMysqlPass;
+	String myGMT_Offset;
+	String myPath = "resources/";
+	boolean task2Suspend = false;
 	String windowSystemName = "Turbine";
 	String windowTitle = "Skystream Wind Turbine";
-	boolean moved = false;
-	boolean displayFrame = true;
-	boolean displayWindow = true;
-	int coorX;
-	int coorY;
-	JButton button = new JButton("Exit", new ImageIcon("resources/Images/close.png"));
-	JLabel label = new JLabel("Title Bar  ");
-	JWindow window = new JWindow();
-	Container con;
-	JFrame frame = new JFrame();
-	JPanel contentPanel = new JPanel();
-	JButton jButton1 = new JButton("Save");
-	JButton jButton2 = new JButton("Cancle", new ImageIcon("resources/Images/close.png"));
-	JLabel jLabel1 = new JLabel();
-	JLabel jLabel2 = new JLabel();
-	JLabel jLabel3 = new JLabel();
-	JLabel jLabel4 = new JLabel();
-	JLabel jLabel5 = new JLabel();
-	JLabel jLabel6 = new JLabel();
-	JLabel jLabel7 = new JLabel();
-	JLabel jLabel8 = new JLabel();
-	JLabel jLabel9 = new JLabel();
-	JLabel jLabel10 = new JLabel();
-	JLabel jLabel11 = new JLabel();
-	JTextField jTextField1 = new JTextField();
-	JTextField jTextField2 = new JTextField();
-	JTextField jTextField3 = new JTextField();
-	JTextField jTextField4 = new JTextField();
-	JTextField jTextField5 = new JTextField();
-	JTextField jTextField6 = new JTextField();
-	JTextField jTextField7 = new JTextField();
-	JTextField jTextField8 = new JTextField();
-	JTextField jTextField9 = new JTextField();
-	JTextField jTextField10 = new JTextField();
-	JTextField jTextField11 = new JTextField();
-	boolean task2Suspend = false;
+	File settings;
+	WindTurbine[] Turbines;
+	int NumTurbines;
 
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2b_openei(args);
 	}
-	
-	public String[] getPref() {
-		String[] system_data = { "none", "none", "none", "none", "none", "none", "none", "none", "none", "0", "0" };
+	void initialize () {
+		System.out.println("Initialing....");
 		try {
-			File file = new File(myPath + "windinterfacepref.xml");
+			settings = new File(myPath + "windinterfacepref.xml");
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document doc = builder.parse(file);
+			Document doc = builder.parse(settings);
 			doc.getDocumentElement().normalize();
 
-			NodeList list = doc.getElementsByTagName("system");
+			NodeList list = doc.getElementsByTagName("setup");
 			for (int i = 0; i < list.getLength(); i++) {
 				Node node1 = list.item(i);
 				if (node1.getNodeType() == 1) {
 					Element element = (Element)node1;
 
-					NodeList sysTitleNodeElementList = element.getElementsByTagName("sys_title");
+					NodeList sysTitleNodeElementList = element.getElementsByTagName("num_turbines");
 					Element element1 = (Element)sysTitleNodeElementList.item(0);
 					NodeList sysTitleNodeList = element1.getChildNodes();
-					system_data[0] = sysTitleNodeList.item(0).getNodeValue();
-
-					NodeList sysIDNodeElementList = element.getElementsByTagName("sys_id");
-					Element element2 = (Element)sysIDNodeElementList.item(0);
-					NodeList sysIDNodeList = element2.getChildNodes();
-					system_data[1] = sysIDNodeList.item(0).getNodeValue();
-
-					NodeList serNumNodeElementList = element.getElementsByTagName("serial_num");
-					Element element3 = (Element)serNumNodeElementList.item(0);
-					NodeList serNumNodeList = element3.getChildNodes();
-					system_data[2] = serNumNodeList.item(0).getNodeValue();
+					NumTurbines = Integer.parseInt(sysTitleNodeList.item(0).getNodeValue());
+					Turbines = new WindTurbine[NumTurbines];
+				}
+			}
+			list = doc.getElementsByTagName("system");
+			for (int i = 0; i < list.getLength(); i++) {
+				Node node1 = list.item(i);
+				if (node1.getNodeType() == 1) {
+					Element element = (Element)node1;
 
 					NodeList dbURLNodeElementList = element.getElementsByTagName("dbURL");
 					Element element4 = (Element)dbURLNodeElementList.item(0);
 					NodeList dbURLNodeList = element4.getChildNodes();
-					system_data[3] = dbURLNodeList.item(0).getNodeValue();
-
-					NodeList sysNameNodeElementList = element.getElementsByTagName("sys_name");
-					Element element5 = (Element)sysNameNodeElementList.item(0);
-					NodeList sysNameNodeList = element5.getChildNodes();
-					system_data[4] = sysNameNodeList.item(0).getNodeValue();
+					myDBURL = dbURLNodeList.item(0).getNodeValue();
 
 					NodeList sysMysqlNodeElementList = element.getElementsByTagName("mysqlURL");
 					Element element6 = (Element)sysMysqlNodeElementList.item(0);
 					NodeList sysMysqlNodeList = element6.getChildNodes();
-					system_data[5] = sysMysqlNodeList.item(0).getNodeValue();
+					myMysqlURL = sysMysqlNodeList.item(0).getNodeValue();
 
 					NodeList sysUserNodeElementList = element.getElementsByTagName("mysqlUser");
 					Element element7 = (Element)sysUserNodeElementList.item(0);
 					NodeList sysUserNodeList = element7.getChildNodes();
-					system_data[6] = sysUserNodeList.item(0).getNodeValue();
+					myMysqlUser = sysUserNodeList.item(0).getNodeValue();
 
 					NodeList sysPassNodeElementList = element.getElementsByTagName("mysqlPass");
 					Element element8 = (Element)sysPassNodeElementList.item(0);
 					NodeList sysPassNodeList = element8.getChildNodes();
-					system_data[7] = sysPassNodeList.item(0).getNodeValue();
-
-					NodeList apiKeyNodeElementList = element.getElementsByTagName("api_key");
-					Element element9 = (Element)apiKeyNodeElementList.item(0);
-					NodeList apiKeyNodeList = element9.getChildNodes();
-					system_data[8] = apiKeyNodeList.item(0).getNodeValue();
+					myMysqlPass = sysPassNodeList.item(0).getNodeValue();
 
 					NodeList gmtoffsetNodeElementList = element.getElementsByTagName("gmt_offset");
 					Element element10 = (Element)gmtoffsetNodeElementList.item(0);
 					NodeList gmtoffsetNodeList = element10.getChildNodes();
-					system_data[9] = gmtoffsetNodeList.item(0).getNodeValue();
-
-					NodeList pwroffsetNodeElementList = element.getElementsByTagName("pwr_offset");
-					Element element11 = (Element)pwroffsetNodeElementList.item(0);
-					NodeList pwroffsetNodeList = element11.getChildNodes();
-					system_data[10] = pwroffsetNodeList.item(0).getNodeValue();
+					myGMT_Offset = gmtoffsetNodeList.item(0).getNodeValue();
 				}
 			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		return system_data;
+		//TODO: Convert to println()
+		System.out.println("windinterface2b version 2.0D using:");
+		System.out.print(", dbURL: " + myDBURL);
+		System.out.print(", mySQLURL: " + myMysqlURL);
+		System.out.print(", mySQLUser: " + myMysqlUser);
+		System.out.print(", GMT+ " + myGMT_Offset);
+		System.out.println("Initialization complete.");
+		System.out.println("Loading Turbines.....");
+		loadTurbines();
 	}
 
-	public String now(String dateFormat) {
+	void loadTurbines() { //Per pi
+		try {
+			File file = new File(myPath + "windinterfacepref.xml");
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(file);
+			doc.getDocumentElement().normalize();
+			String SYSTitle,SYSID,SerialNum,SYSName,APIKey;
+			SYSTitle=SYSID=SerialNum=SYSName=APIKey = "none";
+			Double PWROffset = 0.0;
+			for (int n = 0; n < NumTurbines; n++) {
+				NodeList list = doc.getElementsByTagName(n+"");
+				for (int i = 0; i < list.getLength(); i++) {
+					Node node1 = list.item(i);
+					if (node1.getNodeType() == 1) {
+						Element element = (Element)node1;
+
+						NodeList sysTitleNodeElementList = element.getElementsByTagName("sys_title");
+						Element element1 = (Element)sysTitleNodeElementList.item(0);
+						NodeList sysTitleNodeList = element1.getChildNodes();
+						SYSTitle = sysTitleNodeList.item(0).getNodeValue();
+
+						NodeList sysIDNodeElementList = element.getElementsByTagName("sys_id");
+						Element element2 = (Element)sysIDNodeElementList.item(0);
+						NodeList sysIDNodeList = element2.getChildNodes();
+						SYSID = sysIDNodeList.item(0).getNodeValue().replaceAll("\\W", "");
+
+						NodeList serNumNodeElementList = element.getElementsByTagName("serial_num");
+						Element element3 = (Element)serNumNodeElementList.item(0);
+						NodeList serNumNodeList = element3.getChildNodes();
+						SerialNum = serNumNodeList.item(0).getNodeValue();
+
+
+						NodeList sysNameNodeElementList = element.getElementsByTagName("sys_name");
+						Element element5 = (Element)sysNameNodeElementList.item(0);
+						NodeList sysNameNodeList = element5.getChildNodes();
+						SYSName = sysNameNodeList.item(0).getNodeValue();
+
+
+						NodeList apiKeyNodeElementList = element.getElementsByTagName("api_key");
+						Element element9 = (Element)apiKeyNodeElementList.item(0);
+						NodeList apiKeyNodeList = element9.getChildNodes();
+						APIKey = apiKeyNodeList.item(0).getNodeValue();
+
+						NodeList pwroffsetNodeElementList = element.getElementsByTagName("pwr_offset");
+						Element element11 = (Element)pwroffsetNodeElementList.item(0);
+						NodeList pwroffsetNodeList = element11.getChildNodes();
+						PWROffset = Double.parseDouble(pwroffsetNodeList.item(0).getNodeValue());
+					}
+				}
+				Turbines[n] = new WindTurbine(SYSTitle, SYSName, SYSID, SerialNum, APIKey, PWROffset);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("Loaded Turbines.");
+	}
+
+	public String now(String dateFormat) { //per pi
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
 		return sdf.format(cal.getTime());
 	}
 
-	public void doWindInterface(String[] args) {
+	public void doWindInterface(String[] args) { //per turbine
 		try {
 			if (args.length >= 0) {
 				String outFileName = "windturbinecurrent.txt";
@@ -398,7 +384,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 	}
 
-	public void runskzcmd() {
+	public void runskzcmd() { //per turbine
 		try {
 			double myTime = 0.0D;
 			double pwrTot = 0.0D;
@@ -500,72 +486,72 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 				}
 			}
 			if (averagesReadyToPrint) {
-			FileWriter outFileWriterTest2 = new FileWriter(dataOutFileName2);
-			PrintWriter outStreamTest2 = new PrintWriter(outFileWriterTest2);
+				FileWriter outFileWriterTest2 = new FileWriter(dataOutFileName2);
+				PrintWriter outStreamTest2 = new PrintWriter(outFileWriterTest2);
 
-			outStreamTest2.println(Arrays.toString(tenMinAvgData));
-			outStreamTest2.close();
+				outStreamTest2.println(Arrays.toString(tenMinAvgData));
+				outStreamTest2.close();
 
-			FileWriter outFileWriterTest3 = new FileWriter(dataOutFileName3, true);
-			PrintWriter outStreamTest3 = new PrintWriter(outFileWriterTest3);
+				FileWriter outFileWriterTest3 = new FileWriter(dataOutFileName3, true);
+				PrintWriter outStreamTest3 = new PrintWriter(outFileWriterTest3);
 
-			File dataFile3 = new File(dataOutFileName3);
-			if (dataFile3.length() > 0L) {
-				outStreamTest3.println(inData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
-			}
-			else {
-				outStreamTest3.println("Date, Power(watts), RPM, Wind(meters/sec), Total Energy(Watt-Hrs)");
-				outStreamTest3.println(inData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
-			}
-			outStreamTest3.close();
-
-
-
-			sendToDBOptError = sendTo10minLocalDatabase();
-			if (((sendToDBOptError == -1) || (myDBURL.equals("none"))) && (!myMysqlURL.equals("none"))) {
-				Connection connection;
-				try {
-					Class.forName("org.gjt.mm.mysql.Driver");
-					String dbURL = myMysqlURL;
-					String username = myMysqlUser;
-					String password = myMysqlPass;
-					connection = DriverManager.getConnection(dbURL, username, password);
+				File dataFile3 = new File(dataOutFileName3);
+				if (dataFile3.length() > 0L) {
+					outStreamTest3.println(inData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 				}
-				catch (ClassNotFoundException e) {
-					System.out.println("Database driver not found.");
-					return;
+				else {
+					outStreamTest3.println("Date, Power(watts), RPM, Wind(meters/sec), Total Energy(Watt-Hrs)");
+					outStreamTest3.println(inData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 				}
-				catch (SQLException e) {
-					System.out.println("Error opening the local db connection: " + e.getMessage());
-					return;
-				}
-				try {
-					String myQry = "INSERT into windturbine10avg( \tpower       ,\tvolts,\twindspeed,\ttotalpower,\trpm,\tcurrenttime) VALUES (?,?,?,?,?,?) ";
-					PreparedStatement ps = connection.prepareStatement(myQry);
-					ps.setDouble(1, tenMinAvgData[13]);
-					ps.setDouble(2, tenMinAvgData[6]);
-					ps.setDouble(3, tenMinAvgData[20]);
-					ps.setDouble(4, tenMinAvgData[4]);
-					ps.setDouble(5, tenMinAvgData[19]);
-					Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + Double.parseDouble(myGMT_Offset) * 3600.0D) * 1000L));
-					ps.setTimestamp(6, sqlTimestamp);
+				outStreamTest3.close();
 
 
-					System.out.println("Attempting to send to backup MySql Database (10minAvg)...");
-					ps.executeUpdate();
+
+				sendToDBOptError = sendTo10minLocalDatabase();
+				if (((sendToDBOptError == -1) || (myDBURL.equals("none"))) && (!myMysqlURL.equals("none"))) {
+					Connection connection;
+					try {
+						Class.forName("org.gjt.mm.mysql.Driver");
+						String dbURL = myMysqlURL;
+						String username = myMysqlUser;
+						String password = myMysqlPass;
+						connection = DriverManager.getConnection(dbURL, username, password);
+					}
+					catch (ClassNotFoundException e) {
+						System.out.println("Database driver not found.");
+						return;
+					}
+					catch (SQLException e) {
+						System.out.println("Error opening the local db connection: " + e.getMessage());
+						return;
+					}
+					try {
+						String myQry = "INSERT into windturbine10avg( \tpower       ,\tvolts,\twindspeed,\ttotalpower,\trpm,\tcurrenttime) VALUES (?,?,?,?,?,?) ";
+						PreparedStatement ps = connection.prepareStatement(myQry);
+						ps.setDouble(1, tenMinAvgData[13]);
+						ps.setDouble(2, tenMinAvgData[6]);
+						ps.setDouble(3, tenMinAvgData[20]);
+						ps.setDouble(4, tenMinAvgData[4]);
+						ps.setDouble(5, tenMinAvgData[19]);
+						Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + Double.parseDouble(myGMT_Offset) * 3600.0D) * 1000L));
+						ps.setTimestamp(6, sqlTimestamp);
+
+
+						System.out.println("Attempting to send to backup MySql Database (10minAvg)...");
+						ps.executeUpdate();
+					}
+					catch (SQLException e) {
+						System.out.println("Error executing the SQL statement: <br>" + e.getMessage());
+						System.out.println("Error sending to backup MySQL Database (10minAvg)");
+					}
+					try {
+						connection.close();
+					}
+					catch (SQLException e) {
+						System.out.println("Error closing the db connection: " + e.getMessage());
+					}
 				}
-				catch (SQLException e) {
-					System.out.println("Error executing the SQL statement: <br>" + e.getMessage());
-					System.out.println("Error sending to backup MySQL Database (10minAvg)");
-				}
-				try {
-					connection.close();
-				}
-				catch (SQLException e) {
-					System.out.println("Error closing the db connection: " + e.getMessage());
-				}
-			}
-			averagesReadyToPrint = false;
+				averagesReadyToPrint = false;
 			}
 		}
 		catch (Exception err) {
@@ -573,7 +559,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 	}
 
-	private int sendToOpenEIDataBase(String baseURL, String[] inData) {
+	private int sendToOpenEIDataBase(String baseURL, String[] inData) { //per turbine?
 		int didWork = 0;
 		String[] d = inData;
 		String power = d[13];
@@ -653,7 +639,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 		return didWork;
 	}
-	private int sendToLocalDataBase(String baseURL, String[] inData) {
+	private int sendToLocalDataBase(String baseURL, String[] inData) { //per turbine?
 		int didWork = 0;
 		String[] d = inData;
 		String power = d[13];
@@ -736,7 +722,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return didWork;
 	}
 
-	private int sendTo30sMysqlDatabase(String[] inData) {
+	private int sendTo30sMysqlDatabase(String[] inData) { //per turbine?
 		int error = 1;
 
 		String[] d = inData;
@@ -804,7 +790,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return error;
 	}
 
-	private int sendTo10minLocalDatabase() {
+	private int sendTo10minLocalDatabase() { //per turbine?
 		if (myDBURL.equals("none")) {
 			System.out.println("Skipped 10min avg DB send because no DBURL set");
 			return -1;
@@ -868,7 +854,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return didWork;
 	}
 
-	private double readDailyTot() {
+	private double readDailyTot() { //per turbine
 		double dailyTot = 0.0D;
 		try {
 			String inFileName = "mostcurrentwindturbine.csv";
@@ -894,40 +880,20 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return dailyTot;
 	}
 
-	public windinterface2b_openei(final String[] args) {
+	public windinterface2b_openei(final String[] args) { //per pi, use to create turbines
 		for (int j = 0; j < 20; j++) {
 			for (int k = 0; k < 40; k++) {
 				avgData[j][k] = "0";
 			}
 		}
-		String[] data = getPref();
-		mySysTitle = data[0];
-		mySysID = data[1].replaceAll("\\W", "");
-		mySerialNum = data[2];
-		myDBURL = data[3];
-		mySysName = data[4];
-		myMysqlURL = data[5];
-		myMysqlUser = data[6];
-		myMysqlPass = data[7];
-		myApiKey = data[8];
-		myGMT_Offset = data[9];
-		myPowerOffset = data[10];
 
-		System.out.println("windinterface2b version 2.0D using:");
-		System.out.print("system - Title: " + mySysTitle);
-		System.out.print(", ID: " + mySysID);
-		System.out.print(", SN: " + mySerialNum);
-		System.out.print(", dbURL: " + myDBURL);
-		System.out.print(", sys_name: " + mySysName);
-		System.out.print(", api key: " + myApiKey);
-		System.out.print(", GMT+ " + myGMT_Offset);
-		System.out.print(", +pwr " + myPowerOffset);
+
 
 		System.out.println("");
 
 		myDailyTotal = readDailyTot();
 
-		windowSystemName = mySysTitle;
+		windowSystemName = "Open EI Wind Interface";
 		TimerTask task = new TimerTask() {
 			public void run() {
 				timerrun(args);
@@ -937,8 +903,8 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		timer.schedule(task, 0L, 30000L); //Run for 30s with 0s delay....
 		System.out.println("\n");
 	}
-	
-	public void timerrun (String[] args) {
+
+	public void timerrun (String[] args) { //per pi
 		if (!task2Suspend) {
 			String s = getskzcmd();
 
@@ -960,7 +926,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		doWindInterface(args);
 	}
 
-	public String getskzcmd() {
+	public String getskzcmd() { //per turbine
 		String[] theData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
 		try {
 			double myTime = 0.0D;
@@ -1010,7 +976,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return Arrays.toString(theData);
 	}
 
-	public String doPatch() {
+	public String doPatch() { //per pi
 		String result;
 		BufferedReader br = null;
 		try {
@@ -1055,838 +1021,5 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			return "NullPointer Error";
 		}
 		return result;
-	}
-
-	public void BasicDraw() {
-		window.setSize(530, 250);
-		window.setLocation(50, 50);
-
-		JComponent myComp = new MyComponent();
-
-
-		window.getContentPane().add(myComp);
-		window.setVisible(displayWindow);
-
-		ComponentMover cm = new ComponentMover();
-		cm.registerComponent(new Component[] { window });
-	}
-
-	public void actionPerformed(ActionEvent evt) {
-		if (evt.getSource() == button) {
-			System.exit(0);
-		}
-	}
-
-	public void doEditPref() {
-		String line = "";
-		int doEdit = 0;int doSave = 0;
-
-		System.out.println("\nwindinterface Prefernces Editor:");
-
-		String[] data = getPref();
-		mySysTitle = data[0];
-		mySysID = data[1];
-		mySerialNum = data[2];
-		myDBURL = data[3];
-		mySysName = data[4];
-		myMysqlURL = data[5];
-		myMysqlUser = data[6];
-		myMysqlPass = data[7];
-		myApiKey = data[8];
-		myGMT_Offset = data[9];
-		myPowerOffset = data[10];
-
-		printPrefs();
-
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		try {
-			System.out.print("Do you wish to change preferences? yes:no ");
-
-			line = reader.readLine();
-		}
-		catch (IOException ioe) {
-			System.out.println("error reading IO:");
-			ioe.printStackTrace();
-		}
-		if ((line.equals("yes")) || (line.equals("YES")) || (line.equals("Yes")) || (line.equals("y")) || (line.equals("Y"))) {
-			doEdit = 1;
-		}
-		if ((line.equals("no")) || (line.equals("NO")) || (line.equals("No")) || (line.equals("n")) || (line.equals("N"))) {
-			doEdit = 0;
-		}
-		if (doEdit > 0) {
-			editPref();
-			try {
-				System.out.print("Do you wish to save changes? yes:no ");
-				line = reader.readLine();
-			}
-			catch (IOException ioe) {
-				System.out.println("error reading IO:");
-				ioe.printStackTrace();
-			}
-			if ((line.equals("yes")) || (line.equals("YES")) || (line.equals("Yes")) || (line.equals("y")) || (line.equals("Y"))) {
-				doSave = 1;
-			}
-			if ((line.equals("no")) || (line.equals("NO")) || (line.equals("No")) || (line.equals("n")) || (line.equals("N"))) {
-				doSave = 0;
-			}
-			if (doSave > 0) {
-				setPref();
-			}
-		}
-	}
-
-	private void addElement(Container c, Component e, int x, int y, int h, int w) {
-		e.setBounds(x, y, h, w);
-		c.add(e);
-	}
-
-	public void simpleForm() {
-		String[] data = getPref();
-		mySysTitle = data[0];
-		mySysID = data[1];
-		mySerialNum = data[2];
-		myDBURL = data[3];
-		mySysName = data[4];
-		myMysqlURL = data[5];
-		myMysqlUser = data[6];
-		myMysqlPass = data[7];
-		myApiKey = data[8];
-		myGMT_Offset = data[9];
-		myPowerOffset = data[10];
-
-		frame.setBackground(new Color(255, 255, 255, 255));
-
-		frame.getContentPane().add(contentPanel, "Center");
-		contentPanel.setLayout(null);
-		jLabel1 = new JLabel("System Title:");
-		addElement(contentPanel, jLabel1, 10, 0, 250, 20);
-		jTextField1 = new JTextField(mySysTitle);
-		jTextField1.setToolTipText("Enter the Name for your system");
-		addElement(contentPanel, jTextField1, 10, 20, 250, 20);
-		jLabel2 = new JLabel("Turbine System ID (zigbee)");
-		addElement(contentPanel, jLabel2, 10, 40, 250, 20);
-		jTextField2 = new JTextField(mySysID);
-		jTextField2.setToolTipText("Enter the zigbee ID number i.e. 000abc00");
-		addElement(contentPanel, jTextField2, 10, 60, 250, 20);
-		jLabel3 = new JLabel("Turbine System Serial Number");
-		addElement(contentPanel, jLabel3, 10, 80, 250, 20);
-		jTextField3 = new JTextField(mySerialNum);
-		jTextField3.setToolTipText("Enter the System serial number i.e. 1010-XXXX");
-		addElement(contentPanel, jTextField3, 10, 100, 250, 20);
-		jLabel4 = new JLabel("Local Database URL");
-		addElement(contentPanel, jLabel4, 10, 120, 250, 20);
-		jTextField4 = new JTextField(myDBURL);
-		jTextField4.setToolTipText("Optional: leave as \"none\" for no local database");
-		addElement(contentPanel, jTextField4, 10, 140, 250, 20);
-		jLabel5 = new JLabel("System Name for local Database");
-		addElement(contentPanel, jLabel5, 10, 160, 250, 20);
-		jTextField5 = new JTextField(mySysName);
-		jTextField5.setToolTipText("Optional: leave as \"none\" for no local database");
-		addElement(contentPanel, jTextField5, 10, 180, 250, 20);
-
-		jLabel6 = new JLabel("Address for backup Mysql Database");
-		addElement(contentPanel, jLabel6, 10, 200, 250, 20);
-		jTextField6 = new JTextField(myMysqlURL);
-		jTextField6.setToolTipText("Optional: leave as \"none\" for no backup database");
-		addElement(contentPanel, jTextField6, 10, 220, 250, 20);
-
-		jLabel7 = new JLabel("User name for backup Mysql Database");
-		addElement(contentPanel, jLabel7, 10, 240, 250, 20);
-		jTextField7 = new JTextField(myMysqlUser);
-		jTextField7.setToolTipText("Optional: leave as \"none\" for no backup database");
-		addElement(contentPanel, jTextField7, 10, 260, 250, 20);
-
-		jLabel8 = new JLabel("Password for backup Mysql Database");
-		addElement(contentPanel, jLabel8, 10, 280, 250, 20);
-		jTextField8 = new JTextField(myMysqlPass);
-		jTextField8.setToolTipText("Optional: leave as \"none\" for no backup database");
-		addElement(contentPanel, jTextField8, 10, 300, 250, 20);
-
-		jLabel9 = new JLabel("API-Key for OpenEI Database");
-		addElement(contentPanel, jLabel9, 10, 320, 250, 20);
-		jTextField9 = new JTextField(myApiKey);
-		jTextField9.setToolTipText("API Key is required for openEI access");
-		addElement(contentPanel, jTextField9, 10, 340, 250, 20);
-		jLabel10 = new JLabel("GMT time offset for local timezone");
-		addElement(contentPanel, jLabel10, 10, 360, 250, 20);
-		jTextField10 = new JTextField(myGMT_Offset);
-		jTextField10.setToolTipText("Enter in the time offset from Greenwich Mean Time for your local time zone");
-		addElement(contentPanel, jTextField10, 10, 380, 250, 20);
-		jLabel11 = new JLabel("*Power Offset");
-		addElement(contentPanel, jLabel11, 10, 400, 250, 20);
-		jTextField11 = new JTextField(myPowerOffset);
-		jTextField11.setToolTipText("Optional: add watts to correct/adjust output");
-		addElement(contentPanel, jTextField11, 10, 420, 250, 20);
-
-		jButton1 = new JButton("Save");
-		addElement(contentPanel, jButton1, 200, 440, 100, 30);
-		jButton2 = new JButton("Cancel");
-		addElement(contentPanel, jButton2, 0, 440, 100, 30);
-
-		jButton1.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Save Settings?", "Saving Settings?", 0);
-				if (reply == 0) {
-					windowSystemName = mySysTitle = jTextField1.getText();
-					mySysID = jTextField2.getText();
-					mySerialNum = jTextField3.getText();
-					myDBURL = jTextField4.getText();
-					mySysName = jTextField5.getText();
-					myMysqlURL = jTextField6.getText();
-					myMysqlUser = jTextField7.getText();
-					myMysqlPass = jTextField8.getText();
-					myApiKey = jTextField9.getText();
-					myGMT_Offset = jTextField10.getText();
-					myPowerOffset = jTextField11.getText();
-
-					setPref();
-					task2Suspend = false;
-					frame.dispose();
-				}
-				if (reply == 1) {
-					task2Suspend = false;
-					frame.dispose();
-				}
-			}
-		});
-		jButton2.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				task2Suspend = false;
-				frame.dispose();
-			}
-		});
-		frame.setTitle("Windinterface Preferences");
-		frame.setSize(320, 510);
-		frame.setLocation(new Point(150, 150));
-
-		frame.setVisible(true);
-	}
-
-	public void editPref() {
-		String line = "";
-		int loop = 1;    
-
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		try {
-			while(loop > 0) {
-				System.out.print("Enter the line number to change Preferences or '0' to exit: ");
-				String firstline = reader.readLine();
-				try {
-					long lint = Long.parseLong(firstline);
-					int l = (int)lint;
-					line = "";
-					switch (l) {
-					case 0: 
-						loop = 0;
-						break;
-					case 1: 
-						System.out.print("System Title: " + mySysTitle + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							mySysTitle = line;
-						}
-						System.out.println("System Title: " + mySysTitle);
-						break;
-					case 2: 
-						System.out.print("System ID: " + mySysID + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							mySysID = line;
-						}
-						System.out.println("System ID: " + mySysID);
-						break;
-					case 3: 
-						System.out.print("System Serial Number: " + mySerialNum + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							mySerialNum = line;
-						}
-						System.out.println("System Serial Number: " + mySerialNum);
-						break;
-					case 4: 
-						System.out.print("Greenwich Mean Time Offset (GMT+): " + myGMT_Offset + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myGMT_Offset = line;
-						}
-						System.out.println("GMT: " + myGMT_Offset);
-						break;
-					case 5: 
-						System.out.print("Power Offset: " + myPowerOffset + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myPowerOffset = line;
-						}
-						System.out.println("+pwr: " + myPowerOffset);
-						break;
-					case 6: 
-						System.out.print("db URL: " + myDBURL + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myDBURL = line;
-						}
-						System.out.println("dbURL: " + myDBURL);
-						break;
-					case 7: 
-						System.out.print("db System Name: " + mySysName + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							mySysName = line;
-						}
-						System.out.println("System Name: " + mySysName);
-						break;
-					case 8: 
-						System.out.print("OpenEI API Key: " + myApiKey + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myApiKey = line;
-						}
-						System.out.println("openei api key: " + myApiKey);
-						break;
-					case 9: 
-						System.out.print("Backup Mysql URL: " + myMysqlURL + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myMysqlURL = line;
-						}
-						System.out.println("Backup Mysql URL: " + myMysqlURL);
-						break;
-					case 10: 
-						System.out.print("Backup Mysql User: " + myMysqlUser + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myMysqlUser = line;
-						}
-						System.out.println("Backup Mysql User: " + myMysqlUser);
-						break;
-					case 11: 
-						System.out.print("Backup Mysql Pass: " + myMysqlPass + ": ");
-
-						line = reader.readLine();
-						if (line.length() > 0) {
-							myMysqlPass = line;
-						}
-						System.out.println("Backup Mysql Pass: " + myMysqlPass);
-					}
-				}
-				catch (NumberFormatException localNumberFormatException) {}
-			}
-
-		}
-		catch (IOException ioe) {
-			System.out.println("Something went wrong reading IO:");
-			ioe.printStackTrace();
-		}
-		printPrefs();
-	}
-
-	public void printPrefs() {
-		System.out.println("\nPrefernce Settings:");
-		System.out.println("1)  System Title: " + mySysTitle);
-		System.out.println("2)  System ID: " + mySysID);
-		System.out.println("3)  System SN: " + mySerialNum);
-		System.out.println("4)  GMT+ " + myGMT_Offset);
-		System.out.println("5)  +pwr " + myPowerOffset);
-		System.out.println("6)  dbURL: " + myDBURL);
-		System.out.println("7)  System Name: " + mySysName);
-		System.out.println("8)  Backup MySQL Url: " + myMysqlURL);
-		System.out.println("9)  Backup MySQL User: " + myMysqlUser);
-		System.out.println("10) Backup MySQL Pass: " + myMysqlPass);
-		System.out.println("11) OpenEI API key: " + myApiKey);
-		System.out.println("");
-	}
-
-	public String[] setPref() {
-		String[] system_data = { "none", "none", "none", "none", "none", "none", "none", "none", "none", "0", "0" };
-		String myFile = myPath + "windinterfacepref.xml";
-		try {
-			System.out.println("Saving Data To " + myFile);
-
-			File file = new File(myFile);
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
-			DocumentBuilder builder = factory.newDocumentBuilder();
-
-			Document doc = builder.parse(file);
-			doc.getDocumentElement().normalize();
-
-			NodeList list = doc.getElementsByTagName("system");
-			for (int i = 0; i < list.getLength(); i++) {
-				Node node1 = list.item(i);
-				if (node1.getNodeType() == 1) {
-					Element element = (Element)node1;
-
-					NodeList sysTitleNodeElementList = element.getElementsByTagName("sys_title");
-					Element element1 = (Element)sysTitleNodeElementList.item(0);
-					NodeList sysTitleNodeList = element1.getChildNodes();
-					sysTitleNodeList.item(0).setNodeValue(mySysTitle);
-
-					NodeList sysIDNodeElementList = element.getElementsByTagName("sys_id");
-					Element element2 = (Element)sysIDNodeElementList.item(0);
-					NodeList sysIDNodeList = element2.getChildNodes();
-					sysIDNodeList.item(0).setNodeValue(mySysID);
-
-					NodeList serNumNodeElementList = element.getElementsByTagName("serial_num");
-					Element element3 = (Element)serNumNodeElementList.item(0);
-					NodeList serNumNodeList = element3.getChildNodes();
-					serNumNodeList.item(0).setNodeValue(mySerialNum);
-
-					NodeList dbURLNodeElementList = element.getElementsByTagName("dbURL");
-					Element element4 = (Element)dbURLNodeElementList.item(0);
-					NodeList dbURLNodeList = element4.getChildNodes();
-					dbURLNodeList.item(0).setNodeValue(myDBURL);
-
-					NodeList sysNameNodeElementList = element.getElementsByTagName("sys_name");
-					Element element5 = (Element)sysNameNodeElementList.item(0);
-					NodeList sysNameNodeList = element5.getChildNodes();
-					sysNameNodeList.item(0).setNodeValue(mySysName);
-
-					NodeList sysMysqlNodeElementList = element.getElementsByTagName("mysqlURL");
-					Element element6 = (Element)sysMysqlNodeElementList.item(0);
-					NodeList sysMysqlNodeList = element6.getChildNodes();
-					sysMysqlNodeList.item(0).setNodeValue(myMysqlURL);
-
-					NodeList sysUserNodeElementList = element.getElementsByTagName("mysqlUser");
-					Element element7 = (Element)sysUserNodeElementList.item(0);
-					NodeList sysUserNodeList = element7.getChildNodes();
-					sysUserNodeList.item(0).setNodeValue(myMysqlUser);
-
-					NodeList sysPassNodeElementList = element.getElementsByTagName("mysqlPass");
-					Element element8 = (Element)sysPassNodeElementList.item(0);
-					NodeList sysPassNodeList = element8.getChildNodes();
-					sysPassNodeList.item(0).setNodeValue(myMysqlPass);
-
-					NodeList apiKeyNodeElementList = element.getElementsByTagName("api_key");
-					Element element9 = (Element)apiKeyNodeElementList.item(0);
-					NodeList apiKeyNodeList = element9.getChildNodes();
-					apiKeyNodeList.item(0).setNodeValue(myApiKey);
-
-					NodeList gmtoffsetNodeElementList = element.getElementsByTagName("gmt_offset");
-					Element element10 = (Element)gmtoffsetNodeElementList.item(0);
-					NodeList gmtoffsetNodeList = element10.getChildNodes();
-					gmtoffsetNodeList.item(0).setNodeValue(myGMT_Offset);
-
-					NodeList pwroffsetNodeElementList = element.getElementsByTagName("pwr_offset");
-					Element element11 = (Element)pwroffsetNodeElementList.item(0);
-					NodeList pwroffsetNodeList = element11.getChildNodes();
-					pwroffsetNodeList.item(0).setNodeValue(myPowerOffset);
-				}
-			}
-			TransformerFactory tFactory = TransformerFactory.newInstance();
-			Transformer trs = tFactory.newTransformer();
-			DOMSource source = new DOMSource(doc);
-			StreamResult result = new StreamResult(new FileOutputStream(new File(myFile)));
-			trs.transform(source, result);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		windowSystemName = mySysTitle;
-
-		return system_data;
-	}
-
-	class MyComponent
-	extends JComponent {
-		MyComponent() {}
-
-		public void paint(Graphics g) {
-			String path = myPath + "Images/";
-			DecimalFormat df = new DecimalFormat("#.0");
-			String sysName = windowSystemName + " " + windowTitle;
-			g.setFont(new Font("Helvetica", 3, 16));
-			FontMetrics fm = g.getFontMetrics();
-			int width = fm.stringWidth(sysName);
-			g.setFont(new Font("Helvetica", 0, 14));
-			FontMetrics fm2 = g.getFontMetrics();
-			int width2 = fm2.stringWidth("Daily Energy: " + df.format(dayEnergy) + " (KWatt-Hrs)");
-			int width3 = fm2.stringWidth("Total Energy: " + df.format(totEnergy) + " (KWatt-Hrs)");
-
-			Graphics2D g2d = (Graphics2D)g;
-
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-
-			Image img0top = Toolkit.getDefaultToolkit().getImage(path + "TitleBack1.png");
-			Image img0bot = Toolkit.getDefaultToolkit().getImage(path + "TitleBack1.png");
-			g2d.drawImage(img0top, 5, 5, width + 25, 30, this);
-			g2d.drawImage(img0bot, 20, 190, width2 + 25, 30, this);
-			g2d.drawImage(img0bot, 270, 190, width3 + 25, 30, this);
-
-			Image img0 = Toolkit.getDefaultToolkit().getImage(path + "frontTransP.png");
-			int imgWidth0 = img0.getWidth(this);
-			int imgHeight0 = img0.getHeight(this);
-
-			g2d.drawImage(img0, 0, 20, imgWidth0 + 50, imgHeight0, this);
-
-			Image img0a = Toolkit.getDefaultToolkit().getImage(path + "close.png");
-			int imgWidth0a = img0a.getWidth(this);
-			int imgHeight0a = img0a.getHeight(this);
-
-			g2d.drawImage(img0a, -5, -3, imgWidth0a / 2, imgHeight0a / 2, this);
-
-			Image img0b = Toolkit.getDefaultToolkit().getImage(path + "prefImg.png");
-			int imgWidth0b = img0b.getWidth(this);
-			int imgHeight0b = img0b.getHeight(this);
-			g2d.drawImage(img0b, 0, 30, imgWidth0b / 2, imgHeight0b / 2, this);
-
-			Image img1Off = Toolkit.getDefaultToolkit().getImage(path + "skystreamm-trans.png");
-			Image img1On = Toolkit.getDefaultToolkit().getImage(path + "skystreamm-trans2.png");
-			Image img1 = img1Off;
-			if (speed > 0.0D) {
-				img1 = img1On;
-			}
-			else {
-				img1 = img1Off;
-			}
-			g2d.drawImage(img1, imgWidth0 - 60, 0, 170, imgHeight0 + 10, this);
-
-			Image imgOff = Toolkit.getDefaultToolkit().getImage(path + "GaugeOff.png");
-			Image imgOn = Toolkit.getDefaultToolkit().getImage(path + "GaugeOn.png");
-			Image imgWarn = Toolkit.getDefaultToolkit().getImage(path + "GaugeWarning.png");
-			Image imgCrit = Toolkit.getDefaultToolkit().getImage(path + "GaugeCritical.png");
-
-			Image img2 = imgOff;
-
-			double rw = wind * windConvert;
-			if (rw == 0.0D) {
-				img2 = imgOff;
-			}
-			else if ((rw > 0.0D) && (rw <= 180.0D)) {
-				img2 = imgOn;
-			}
-			else if ((rw > 180.0D) && (rw < 270.0D)) {
-				img2 = imgWarn;
-			}
-			else if (rw >= 270.0D) {
-				img2 = imgCrit;
-			}
-			g2d.drawImage(img2, 15, 85, 110, 110, this);
-
-			Image img3 = imgOff;
-
-			double rs = speed * speedConvert;
-			if (rs == 0.0D) {
-				img3 = imgOff;
-			}
-			else if ((rs > 0.0D) && (rs <= 180.0D)) {
-				img3 = imgOn;
-			}
-			else if ((rs > 180.0D) && (rs < 270.0D)) {
-				img3 = imgWarn;
-			}
-			else if (rs >= 270.0D) {
-				img3 = imgCrit;
-			}
-			g2d.drawImage(img3, 125, 85, 110, 110, this);
-
-			Image img4 = imgOff;
-
-			double rp = power * powerConvert;
-			if (rp == 0.0D) {
-				img4 = imgOff;
-			}
-			else if ((rp > 0.0D) && (rp <= 180.0D)) {
-				img4 = imgOn;
-			}
-			else if ((rp > 180.0D) && (rp < 270.0D)) {
-				img4 = imgWarn;
-			}
-			else if (rp >= 270.0D) {
-				img4 = imgCrit;
-			}
-			g2d.drawImage(img4, 260, 58, 140, 140, this);
-
-			Image imgVOff = Toolkit.getDefaultToolkit().getImage(path + "VerticalOff.png");
-			Image imgVOn = Toolkit.getDefaultToolkit().getImage(path + "VerticalOn.png");
-			Image imgVWarn = Toolkit.getDefaultToolkit().getImage(path + "VerticalWarning.png");
-			Image imgVCrit = Toolkit.getDefaultToolkit().getImage(path + "VerticalCritical.png");
-
-			Image img5 = imgVOff;
-			for (int i = 0; i <= 10; i++) {
-				g2d.drawImage(imgVOff, 400, 155 - i * 10, this);
-			}
-			double v = Double.parseDouble(volts) * voltsConvert;
-			if (v == 0.0D) {
-				img5 = imgVOff;
-			}
-			else if ((v > 0.0D) && (v <= 3.0D)) {
-				img5 = imgVOn;
-			}
-			else if ((v > 3.0D) && (v < 8.0D)) {
-				img5 = imgVWarn;
-			}
-			else if (v >= 8.0D) {
-				img5 = imgVCrit;
-			}
-			for (int i = 0; i <= v; i++) {
-				g2d.drawImage(img5, 400, 155 - i * 10, this);
-			}
-			Image img6 = imgVOff;
-			for (int i = 0; i <= 8; i++) {
-				g2d.drawImage(imgVOff, 240, 155 - i * 10, this);
-			}
-			double de = dayEnergy * dayEnergyConvert;
-			if (de == 0.0D) {
-				img6 = imgVOff;
-			}
-			else if ((de > 0.0D) && (de <= 3.0D)) {
-				img6 = imgVOn;
-			}
-			else if ((de > 3.0D) && (de < 6.0D)) {
-				img6 = imgVWarn;
-			}
-			else if (de >= 6.0D) {
-				img6 = imgVCrit;
-			}
-			for (int i = 0; i <= de; i++) {
-				g2d.drawImage(img6, 240, 155 - i * 10, this);
-			}
-			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			env.getAvailableFontFamilyNames();
-			g.setFont(new Font("Helvetica", 3, 16));
-
-			g2d.setPaint(Color.LIGHT_GRAY);
-
-			g2d.drawString(sysName, 17, 26);
-			g2d.setPaint(Color.black);
-			g2d.drawString(sysName, 15, 25);
-
-			g.setFont(new Font("Helvetica", 0, 14));
-			g2d.setPaint(Color.LIGHT_GRAY);
-			g2d.drawString("Daily Energy: " + df.format(dayEnergy) + " (KWatt-Hrs)", 37, 211);
-			g2d.drawString("Total Energy: " + df.format(totEnergy) + " (KWatt-Hrs)", 282, 211);
-			g2d.drawString("Wind Speed", 36, 71);
-			g2d.drawString("(m/s)", 51, 86);
-
-			g2d.drawString("Turbine Speed", 136, 71);
-			g2d.drawString("(RPM)", 151, 86);
-			g2d.drawString("Power (Watts)", 281, 61);
-			g2d.drawString("Volts", 391, 196);
-			g2d.drawString("KWatt/Hrs", 226, 196);
-			g2d.setPaint(Color.black);
-			g2d.drawString("Wind Speed", 35, 70);
-			g2d.drawString("(m/s)", 50, 85);
-
-			g2d.drawString("Turbine Speed", 135, 70);
-			g2d.drawString("(RPM)", 150, 85);
-			g2d.drawString("Power (Watts)", 280, 60);
-			g2d.drawString("Daily Energy: " + df.format(dayEnergy) + " (KWatt-Hrs)", 35, 210);
-			g2d.drawString("Total Energy: " + df.format(totEnergy) + " (KWatt-Hrs)", 280, 210);
-			g2d.drawString("Volts", 390, 195);
-			g2d.drawString("KWatt/Hrs", 225, 195);
-
-			setFont(new Font("Helvetica", 0, 14));
-			g2d.setPaint(Color.white);
-
-			String sysDate = now("hh:mm:ss a MM/dd/yyyy z");
-			g2d.drawString(sysDate, 20, 50);
-
-			g2d.drawString("T:" + ts + " S:" + ss + " G:" + gs + " Status", 240, 48);
-			g2d.drawString(volts, 392, 180);
-
-			g2d.drawString(df.format(wind), 55, 180);
-			g2d.drawString(df.format(speed), 163, 180);
-			g2d.drawString(df.format(power), 310, 180);
-			g2d.drawString(df.format(dayEnergy), 230, 180);
-			AffineTransform tx = new AffineTransform();
-
-			double pi = 3.141592653589793D;
-			if (rw < 30.0D) {
-				rw = 30.0D;
-			}
-			if (rw > 330.0D) {
-				rw = 330.0D;
-			}
-			tx.scale(0.3D, 0.3D);
-			tx.translate(200.0D, 440.0D);
-
-			ImageIcon dial = new ImageIcon(path + "myGaugePointer2.png");
-			int iconX = 0;
-			int iconY = 0;
-			tx.rotate(rw * pi / 180.0D, 25.0D, 22.0D);
-			g2d.setTransform(tx);
-			dial.paintIcon(this, g, iconX, iconY);
-			if (rs < 30.0D) {
-				rs = 30.0D;
-			}
-			if (rs > 330.0D) {
-				rs = 330.0D;
-			}
-			tx.setToRotation(0.0D);
-			tx.setToTranslation(0.0D, 0.0D);
-			tx.scale(0.3D, 0.3D);
-			tx.translate(570.0D, 440.0D);
-
-			tx.rotate(rs * pi / 180.0D, 25.0D, 22.0D);
-			g2d.setTransform(tx);
-			dial.paintIcon(this, g, iconX, iconY);
-			if (rp < 30.0D) {
-				rp = 30.0D;
-			}
-			if (rp > 330.0D) {
-				rp = 330.0D;
-			}
-			tx.setToRotation(0.0D);
-			tx.setToTranslation(0.0D, 0.0D);
-
-			tx.scale(0.4D, 0.4D);
-			tx.translate(801.0D, 295.0D);
-
-			tx.rotate(rp * pi / 180.0D, 25.0D, 22.0D);
-			g2d.setTransform(tx);
-			dial.paintIcon(this, g, iconX, iconY);
-		}
-	}
-
-	public class ComponentMover extends MouseAdapter {
-		private Class<?> destinationClass;
-		private Component destinationComponent;
-		private Component destination;
-		private Component source;
-		private boolean changeCursor = true;
-		private Point pressed;
-		private Point location;
-		private Cursor originalCursor;
-		private boolean autoscrolls;
-		private Insets dragInsets = new Insets(0, 0, 0, 0);
-		private Dimension snapSize = new Dimension(1, 1);
-
-		public ComponentMover() {}
-
-		public ComponentMover(Class<?> destinationClass, Component... components) {
-			this.destinationClass = destinationClass;
-			registerComponent(components);
-		}
-
-		public ComponentMover(Component destinationComponent, Component... components) {
-			this.destinationComponent = destinationComponent;
-			registerComponent(components);
-		}
-
-		public boolean isChangeCursor() {
-			return changeCursor;
-		}
-
-		public void setChangeCursor(boolean changeCursor) {
-			this.changeCursor = changeCursor;
-		}
-
-		public Insets getDragInsets() {
-			return dragInsets;
-		}
-
-		public void setDragInsets(Insets dragInsets) {
-			this.dragInsets = dragInsets;
-		}
-
-		public void deregisterComponent(Component... components) {
-			for (Component component : components) {
-				component.removeMouseListener(this);
-			}
-		}
-
-		public void registerComponent(Component... components) {
-			for (Component component : components) {
-				component.addMouseListener(this);
-			}
-		}
-
-		public Dimension getSnapSize() {
-			return snapSize;
-		}
-
-		public void setSnapSize(Dimension snapSize) {
-			this.snapSize = snapSize;
-		}
-
-		public void mousePressed(MouseEvent e) {
-			source = e.getComponent();
-			int width = source.getSize().width - dragInsets.left - dragInsets.right;
-			int height = source.getSize().height - dragInsets.top - dragInsets.bottom;
-			Rectangle r = new Rectangle(dragInsets.left, dragInsets.top, width, height);
-			if (r.contains(e.getPoint())) {
-				setupForDragging(e);
-			}
-		}
-
-		public void mouseClicked(MouseEvent e) {
-			int deltaX = (int)pressed.getX() - (int)location.getX() - 10;
-			int deltaY = (int)pressed.getY() - (int)location.getY() - 10;
-			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= -10) && (deltaY < 10)) {
-				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish To Exit?", "Quit", 0);
-				if (reply == 0) {
-					System.exit(0);
-				}
-			}
-			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= 20) && (deltaY < 40)) {
-				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Edit Settings?", "Edit Settings?", 0);
-				if (reply == 0) {
-					task2Suspend = true;
-					simpleForm();
-				}
-			}
-		}
-
-		private void setupForDragging(MouseEvent e) {
-			source.addMouseMotionListener(this);
-			if (destinationComponent != null) {
-				destination = destinationComponent;
-			}
-			else if (destinationClass == null) {
-				destination = source;
-			}
-			else {
-				destination = SwingUtilities.getAncestorOfClass(destinationClass, source);
-			}
-			pressed = e.getLocationOnScreen();
-			location = destination.getLocation();
-			if (changeCursor) {
-				originalCursor = source.getCursor();
-				source.setCursor(Cursor.getPredefinedCursor(13));
-			}
-			if ((destination instanceof JComponent)) {
-				JComponent jc = (JComponent)destination;
-				autoscrolls = jc.getAutoscrolls();
-				jc.setAutoscrolls(false);
-			}
-		}
-
-		public void mouseDragged(MouseEvent e) {
-			Point dragged = e.getLocationOnScreen();
-			int dragX = getDragDistance(dragged.x, pressed.x, snapSize.width);
-			int dragY = getDragDistance(dragged.y, pressed.y, snapSize.height);
-			destination.setLocation(location.x + dragX, location.y + dragY);
-		}
-
-		private int getDragDistance(int larger, int smaller, int snapSize) {
-			int halfway = snapSize / 2;
-			int drag = larger - smaller;
-			drag += (drag < 0 ? -halfway : halfway);
-			drag = drag / snapSize * snapSize;
-
-			return drag;
-		}
-
-		public void mouseReleased(MouseEvent e) {
-			source.removeMouseMotionListener(this);
-			if (changeCursor) {
-				source.setCursor(originalCursor);
-			}
-			if ((destination instanceof JComponent)) {
-				((JComponent)destination).setAutoscrolls(autoscrolls);
-			}
-		}
 	}
 }
