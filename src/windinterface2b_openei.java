@@ -74,10 +74,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 @SuppressWarnings("serial")
-public class windinterface2b_openei
-extends HttpServlet
-implements ActionListener
-{
+public class windinterface2b_openei extends HttpServlet implements ActionListener {
 	static BufferedReader inputData;
 	static String[] inData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
 	static String[][] avgData = new String[20][40];
@@ -156,11 +153,13 @@ implements ActionListener
 	JTextField jTextField11 = new JTextField();
 	static boolean task2Suspend = false;
 
-	public static String[] getPref()
-	{
+	public static void main(String[] args) throws AWTException, IOException {
+		new windinterface2b_openei(args);
+	}
+	
+	public static String[] getPref() {
 		String[] system_data = { "none", "none", "none", "none", "none", "none", "none", "none", "none", "0", "0" };
-		try
-		{
+		try {
 			File file = new File(myPath + "windinterfacepref.xml");
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
@@ -168,11 +167,9 @@ implements ActionListener
 			doc.getDocumentElement().normalize();
 
 			NodeList list = doc.getElementsByTagName("system");
-			for (int i = 0; i < list.getLength(); i++)
-			{
+			for (int i = 0; i < list.getLength(); i++) {
 				Node node1 = list.item(i);
-				if (node1.getNodeType() == 1)
-				{
+				if (node1.getNodeType() == 1) {
 					Element element = (Element)node1;
 
 					NodeList sysTitleNodeElementList = element.getElementsByTagName("sys_title");
@@ -232,35 +229,24 @@ implements ActionListener
 				}
 			}
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return system_data;
 	}
 
-	public static String now(String dateFormat)
-	{
+	public static String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
 		return sdf.format(cal.getTime());
 	}
 
-	public static void doWindInterface(String[] args)
-	{
-		try
-		{
-			if (args.length >= 0)
-			{
-				//NOT USED: String[] testdata = null;
-
-				//NOT USED: String inFileName = "tenminaveragewindturbine.csv";
+	public static void doWindInterface(String[] args) {
+		try {
+			if (args.length >= 0) {
 				String outFileName = "windturbinecurrent.txt";
-				//NOT USED: String outFileName4 = "ss" + now("yyyy_MM") + ".csv";
 				String outFileName3 = "mostcurrentwindturbine.csv";
 				String outFileName2 = "chart.html";
-				//NOT USED: String outFileName5 = "tenminaveragewindturbine.csv";
-
 
 				FileWriter outFileWriter = new FileWriter(outFileName);
 				FileWriter outFileWriter2 = new FileWriter(outFileName2);
@@ -271,15 +257,10 @@ implements ActionListener
 				PrintWriter outStream3 = new PrintWriter(outFileWriter3);
 
 				int arraysize = maxAvgCount;
-				//NOT USED: String inLine = null;String lastLine = null;
 				String power = "0";String Watts = "0";String RPM = "0";String Wind = "0";String TurbineStatus = "0";String GridStatus = "0";String SystemStatus = "0";String myTime = "0";
-				//NOT USED: String volts = "0";
 				String cpowerstring = "";String cRPMstring = "";String ctimestring = "";
 				double avgpower = 0.0D;double KWatts = 0.0D;double avgRPM = 0.0D;double avgWind = 0.0D;double dailyTotal = 0.0D;
-				//NOT USED: double avgvolts = 0.0D;
-				//NOT USED: double[] cpower = new double[arraysize];double[] cRPM = new double[arraysize];double[] ctime = new double[arraysize];
 				double[] aa = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
-				//NOT USED: int numberofdatalines = 0;int mycounter = arraysize;
 				int i = 0;
 
 				runskzcmd();
@@ -288,16 +269,13 @@ implements ActionListener
 				String[] d = inData;
 
 				int numberOfd = Array.getLength(d);
-				if (aa[15] != 0.0D)
-				{
+				if (aa[15] != 0.0D) {
 					avgpower = aa[13];
-					//NOT USED: avgvolts = aa[6];
 					avgRPM = aa[19];
 					avgWind = aa[20];
 					KWatts = aa[4];
 				}
-				if (numberOfd >= 39)
-				{
+				if (numberOfd >= 39) {
 					power = d[13];
 					volts = d[6];
 					Watts = d[4];
@@ -310,14 +288,12 @@ implements ActionListener
 					dailyTotal = Double.parseDouble(d[5]) / 1000.0D;
 					KWatts = Double.parseDouble(Watts) / 1000.0D;
 				}
-				for (i = 0; i <= arraysize - 1; i++)
-				{
+				for (i = 0; i <= arraysize - 1; i++) {
 					cpowerstring = cpowerstring + "," + avgData[i][13];
 					cRPMstring = cRPMstring + "," + avgData[i][19];
 					ctimestring = ctimestring + "," + Double.toString(i);
 				}
-				if (!d[0].equals("0"))
-				{
+				if (!d[0].equals("0")) {
 					String openeiTurbineID = mySerialNum.replace("-", "").substring(2);
 
 
@@ -360,7 +336,8 @@ implements ActionListener
 					outStream.print("Total Energy:   ");
 					if (d[0].equals("103853")) {
 						outStream.format("%s%.2f%s%n%n", new Object[] { " ", Double.valueOf(KWatts), " KWatt-Hrs (from 8/2/08)" });
-					} else {
+					}
+					else {
 						outStream.format("%s%.2f%s%n%n", new Object[] { " ", Double.valueOf(KWatts), " KWatt-Hrs" });
 					}
 					outStream.println("            *** 10 min Averages ***   \n");
@@ -406,44 +383,26 @@ implements ActionListener
 					outStream.close();
 					outStream2.close();
 					outStream3.close();
-
-					/*NOT USED: double tempTime = 0.0D;
-          try
-          {
-            tempTime = Double.parseDouble(d[2]);
-          }
-          catch (Exception e)
-          {
-            System.out.println(e);
-            tempTime = 0.0D;
-          }*/
 				}
-				else
-				{
+				else {
 					System.out.println("error: no data from turbine");
 				}
 			}
-			else
-			{
+			else {
 				System.out.println("Usage: windinterface2b 'input filename', 'output filiename'");
 				System.exit(0);
 			}
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			System.out.println("IOExcepton:");
 			e.printStackTrace();
 		}
 	}
 
-	public static void runskzcmd()
-	{
-		try
-		{
+	public static void runskzcmd() {
+		try {
 			double myTime = 0.0D;
-			//NOT USED: double timeUb = 0.0D;double timeLb = 0.0D;double pwrUb = 0.0D;double pwrLb = 0.0D;
 			double pwrTot = 0.0D;
-			//NOT USED: double tempVar = 0.0D;
 			int i = 0;int numberOfChar = 0;int j = 0;int k = 0;
 			String dataOutFileName = "ss" + now("yyyy_MM") + ".csv";
 			String dataOutFileName3 = "tenminaverage_ss" + now("yyyy_MM") + ".csv";
@@ -451,15 +410,7 @@ implements ActionListener
 
 			FileWriter outFileWriterTest = new FileWriter(dataOutFileName, true);
 
-
-
-
 			PrintWriter outStreamTest = new PrintWriter(outFileWriterTest);
-
-
-
-
-
 
 			String OS = System.getProperty("os.name");
 			String execPath = myPath + "skzcmd.exe -z +" + mySysID + " dstat 1 0";
@@ -469,11 +420,9 @@ implements ActionListener
 			Process p = Runtime.getRuntime().exec(execPath);
 			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
-			while ((line = input.readLine()) != null)
-			{
+			while ((line = input.readLine()) != null) {
 				String[] d = line.split(",");
-				if (d.length >= 2)
-				{
+				if (d.length >= 2) {
 					inData[0] = d[0].replaceAll("\\D", "");
 					String[] tempd1 = d[1].split(" ");
 					inData[1] = tempd1[0].replaceAll("\\D", "");
@@ -487,14 +436,9 @@ implements ActionListener
 
 					myTime = Double.parseDouble(inData[2]);
 
-
-
 					pwrTot = Double.parseDouble(inData[4]);
 
 					inData[4] = Double.toString(pwrTot + Double.parseDouble(myPowerOffset));
-
-
-
 
 					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + Double.parseDouble(myGMT_Offset) * 3600.0D) * 1000.0D));
 
@@ -509,12 +453,10 @@ implements ActionListener
 					inData[5] = Double.toString(myDailyTotal);
 
 					File dataFile = new File(dataOutFileName);
-					if (dataFile.length() > 0L)
-					{
+					if (dataFile.length() > 0L) {
 						outStreamTest.println(Arrays.toString(inData));
 					}
-					else
-					{
+					else {
 						outStreamTest.println("Turbine ID,SW Version,Time(sec),Time(MDY:HMS),watt-hours,DailyTot,Voltage In,Voltage DC Bus,Voltage L1,Voltage L2,voltage rise,min v from rpm,Current out,Power out,Power reg,Power max,Line Frequency,Inverter Frequency,Line Resistance,RPM,Windspeed (ref meters/sec),TargetTSR,Ramp RPM,Boost pulswidth,Max BPW,current amplitude, T1,T2,T3,Event count,Last event code,Event status,Event value,Turbine status,Grid status,System status,Slave Status,Access Status,Timer,");
 						outStreamTest.println(Arrays.toString(inData));
 					}
@@ -524,32 +466,28 @@ implements ActionListener
 
 			outStreamTest.close();
 			if ((avgCount < maxAvgCount) && (numberOfChar >= 39)) {
-				for (i = 0; i < numberOfChar; i++)
-				{
+				for (i = 0; i < numberOfChar; i++) {
 					avgData[avgCount][i] = inData[i];
 					if (i == numberOfChar - 1) {
 						avgCount += 1;
 					}
-					if (avgCount >= maxAvgCount)
-					{
+					if (avgCount >= maxAvgCount) {
 						avgCount = 0;
 						for (j = 0; j < maxAvgCount; j++) {
-							for (k = 0; k < numberOfChar - 1; k++)
-							{
-								if (k == 3)
-								{
+							for (k = 0; k < numberOfChar - 1; k++) {
+								if (k == 3) {
 									tenMinAvgData[3] = 0.0D;
 									k = 4;
 								}
 								double tempDouble = 0.0D;
-								try
-								{
+								try {
 									tempDouble = Double.parseDouble(avgData[j][k]);
 								}
 								catch (NumberFormatException localNumberFormatException) {}
 								if (j == 0) {
 									tenMinAvgData[k] = tempDouble;
-								} else {
+								}
+								else {
 									tenMinAvgData[k] += tempDouble;
 								}
 							}
@@ -562,29 +500,21 @@ implements ActionListener
 					}
 				}
 			}
-			if (averagesReadyToPrint)
-			{
-				//NOT USED: String message;
+			if (averagesReadyToPrint) {
 			FileWriter outFileWriterTest2 = new FileWriter(dataOutFileName2);
 			PrintWriter outStreamTest2 = new PrintWriter(outFileWriterTest2);
 
-
-
 			outStreamTest2.println(Arrays.toString(tenMinAvgData));
 			outStreamTest2.close();
-
-
 
 			FileWriter outFileWriterTest3 = new FileWriter(dataOutFileName3, true);
 			PrintWriter outStreamTest3 = new PrintWriter(outFileWriterTest3);
 
 			File dataFile3 = new File(dataOutFileName3);
-			if (dataFile3.length() > 0L)
-			{
+			if (dataFile3.length() > 0L) {
 				outStreamTest3.println(inData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 			}
-			else
-			{
+			else {
 				outStreamTest3.println("Date, Power(watts), RPM, Wind(meters/sec), Total Energy(Watt-Hrs)");
 				outStreamTest3.println(inData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 			}
@@ -593,29 +523,24 @@ implements ActionListener
 
 
 			sendToDBOptError = sendTo10minLocalDatabase();
-			if (((sendToDBOptError == -1) || (myDBURL.equals("none"))) && (!myMysqlURL.equals("none")))
-			{
+			if (((sendToDBOptError == -1) || (myDBURL.equals("none"))) && (!myMysqlURL.equals("none"))) {
 				Connection connection;
-				try
-				{
+				try {
 					Class.forName("org.gjt.mm.mysql.Driver");
 					String dbURL = myMysqlURL;
 					String username = myMysqlUser;
 					String password = myMysqlPass;
 					connection = DriverManager.getConnection(dbURL, username, password);
 				}
-				catch (ClassNotFoundException e)
-				{
+				catch (ClassNotFoundException e) {
 					System.out.println("Database driver not found.");
 					return;
 				}
-				catch (SQLException e)
-				{
+				catch (SQLException e) {
 					System.out.println("Error opening the local db connection: " + e.getMessage());
 					return;
 				}
-				try
-				{
+				try {
 					String myQry = "INSERT into windturbine10avg( \tpower       ,\tvolts,\twindspeed,\ttotalpower,\trpm,\tcurrenttime) VALUES (?,?,?,?,?,?) ";
 					PreparedStatement ps = connection.prepareStatement(myQry);
 					ps.setDouble(1, tenMinAvgData[13]);
@@ -630,42 +555,28 @@ implements ActionListener
 					System.out.println("Attempting to send to backup MySql Database (10minAvg)...");
 					ps.executeUpdate();
 				}
-				catch (SQLException e)
-				{
+				catch (SQLException e) {
 					System.out.println("Error executing the SQL statement: <br>" + e.getMessage());
 					System.out.println("Error sending to backup MySQL Database (10minAvg)");
 				}
-				try
-				{
+				try {
 					connection.close();
 				}
-				catch (SQLException e)
-				{
+				catch (SQLException e) {
 					System.out.println("Error closing the db connection: " + e.getMessage());
 				}
 			}
 			averagesReadyToPrint = false;
 			}
 		}
-		catch (Exception err)
-		{
+		catch (Exception err) {
 			err.printStackTrace();
 		}
 	}
 
-	private static int sendToOpenEIDataBase(String baseURL, String[] inData)
-	{
-		//NOT USED: String message;
-
+	private static int sendToOpenEIDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
-
-
-
 		String[] d = inData;
-
-
-
-		//NOT USED: String sysID = d[0].replace("[", "");
 		String power = d[13];
 		String volts = d[6];
 		String Watts = d[4];
@@ -682,13 +593,6 @@ implements ActionListener
 
 		String dailyTotal = d[5];
 		String GMT = d[2];
-
-
-		//NOT USED: double tempTime = 0.0D;
-		//NOT USED: String myGMT_Offset = "7.0";
-
-
-
 		int year = Integer.parseInt(myDate[2]);
 		int month = Integer.parseInt(myDate[0]);
 		int day = Integer.parseInt(myDate[1]);
@@ -697,17 +601,7 @@ implements ActionListener
 		int sec = Integer.parseInt(myTimeHMS[2]);
 
 		String tempString = year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
-		/*NOT USED: try
-    {
-      tempTime = Double.parseDouble(d[2]);
-    }
-    catch (Exception e)
-    {
-      System.out.println("Exception error : " + e);
-      tempTime = 0.0D;
-    }*/
-		try
-		{
+		try {
 			String keyString = "turbineID,GMT time,Day & time,PowerW, DailyKW, TotalKW, RPM, Wind, Volts, Tstat, Sstat, Gstat";
 			keyString = keyString.replaceAll(" ", "");
 
@@ -720,8 +614,7 @@ implements ActionListener
 			String[] data = skyDataString.split(",");
 
 			int i = 0;
-			while (i < keys.length)
-			{
+			while (i < keys.length) {
 				dataMap.put(keys[i], data[i]);
 				i++;
 			}
@@ -730,61 +623,40 @@ implements ActionListener
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
 			String urlString = baseURL + "?api_key=" + myApiKey + "&" + "json_data=" + jsonString;
 
-
 			URL url = new URL(urlString);
-
-
-
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
-
 			String check = null;
 			String s;
-			while ((s = br.readLine()) != null)
-			{
+			while ((s = br.readLine()) != null) {
 				if (s != null) {
 					check = s;
 				}
 			}
-			if (check.substring(0, 6).equals("{\"Item"))
-			{
+			if (check.substring(0, 6).equals("{\"Item")) {
 				didWork = 1;
 				System.out.println("Data was Successfully sent to OpenEI");
 			}
-			else
-			{
+			else {
 				didWork = -1;
 				System.out.println("OpenEI Error! " + s);
 			}
 			br.close();
 		}
-		catch (MalformedURLException e)
-		{
+		catch (MalformedURLException e) {
 			System.out.println("Error executing the  statement: <br>" + e.getMessage());
 			e.printStackTrace();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			System.out.println("IO exception: <br>" + e.getMessage());
 			e.printStackTrace();
 		}
 		return didWork;
 	}
-
-	private static int sendToLocalDataBase(String baseURL, String[] inData)
-	{
-		//NOT USED: String message;
-
+	private static int sendToLocalDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
-
-
-
 		String[] d = inData;
-
-
-
-		//NTO USED: String sysID = d[0].replace("[", "");
 		String power = d[13];
 		String volts = d[6];
 		String Watts = d[4];
@@ -801,12 +673,6 @@ implements ActionListener
 
 		String dailyTotal = d[5];
 		String GMT = d[2];
-
-
-		//NOT USED: double tempTime = 0.0D;
-		//NOT USED: String myGMT_Offset = "7.0";
-
-
 
 		int year = Integer.parseInt(myDate[2]);
 		int month = Integer.parseInt(myDate[0]);
@@ -816,17 +682,7 @@ implements ActionListener
 		int sec = Integer.parseInt(myTimeHMS[2]);
 
 		String tempString = year + "-" + month + "-" + day + "%20" + hour + ":" + min + ":" + sec;
-		/*NOT USED: try
-    {
-    	tempTime = Double.parseDouble(d[2]);
-    }
-    catch (Exception e)
-    {
-      System.out.println("Exception error : " + e);
-      tempTime = 0.0D;
-    }*/
-		try
-		{
+		try {
 			String keyString = "turbineID,GMT time,Day & time,PowerW, DailyKW, TotalKW, RPM, Wind, Volts, Tstat, Sstat, Gstat";
 			keyString = keyString.replaceAll(" ", "");
 
@@ -839,8 +695,7 @@ implements ActionListener
 			String[] data = skyDataString.split(",");
 
 			int i = 0;
-			while (i < keys.length)
-			{
+			while (i < keys.length) {
 				dataMap.put(keys[i], data[i]);
 				i++;
 			}
@@ -851,53 +706,39 @@ implements ActionListener
 
 
 			URL url = new URL(urlString);
-
-
-
-
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-
 
 			String check = null;
 			String s;
-			while ((s = br.readLine()) != null)
-			{
+			while ((s = br.readLine()) != null) {
 				if (s != null) {
 					check = s;
 				}
 			}
-			if (check.equals("SUCCESS"))
-			{
+			if (check.equals("SUCCESS")) {
 				didWork = 1;
 				System.out.println("Data was Successfully sent to Local 30s Database (HTTP)");
 				System.out.println("Success");
 			}
-			else
-			{
+			else {
 				didWork = -1;
 				System.out.println("Error sending to Local 30s Database (HTTP) " + s);
 			}
 			br.close();
 		}
-		catch (MalformedURLException e)
-		{
+		catch (MalformedURLException e) {
 			System.out.println("Error executing the  statement: <br>" + e.getMessage());
 			e.printStackTrace();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			System.out.println("IO exception: <br>" + e.getMessage());
 			e.printStackTrace();
 		}
 		return didWork;
 	}
 
-	private static int sendTo30sMysqlDatabase(String[] inData)
-	{
-		//NOT USED: String message;
+	private static int sendTo30sMysqlDatabase(String[] inData) {
 		int error = 1;
-
-
 
 		String[] d = inData;
 
@@ -907,20 +748,16 @@ implements ActionListener
 		String RPM = d[19];
 		String Wind = d[20];
 
-
 		double tempTime = 0.0D;
-		try
-		{
+		try {
 			tempTime = Double.parseDouble(d[2]);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			System.out.println("Exception error : " + e);
 			tempTime = 0.0D;
 		}
 		Connection connection;
-		try
-		{
+		try {
 			Class.forName("org.gjt.mm.mysql.Driver");
 
 			String dbURL = myMysqlURL;
@@ -928,30 +765,17 @@ implements ActionListener
 			String password = myMysqlPass;
 			connection = DriverManager.getConnection(dbURL, username, password);
 		}
-		catch (ClassNotFoundException e)
-		{
+		catch (ClassNotFoundException e) {
 			System.out.println("Database driver not found.");
 			return -1;
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			System.out.println("Local Error opening the db connection: " + 
 					e.getMessage());
 			return -1;
 		}
-		try
-		{
+		try {
 			String myQry = "INSERT into windturbine( \tpower       ,\tvolts,\twindspeed,\ttotalpower,\trpm,\tcurrenttime) VALUES (?,?,?,?,?,?) ";
-
-
-
-
-
-
-
-
-
-
 
 			PreparedStatement ps = connection.prepareStatement(myQry);
 			ps.setDouble(1, Double.parseDouble(power));
@@ -962,21 +786,17 @@ implements ActionListener
 			Timestamp sqlTimestamp = new Timestamp((long) ((tempTime + Double.parseDouble(myGMT_Offset) * 3600.0D) * 1000L));
 			ps.setTimestamp(6, sqlTimestamp);
 
-
 			System.out.println("Trying Backup MySQL Database (30s)...");
 			ps.executeUpdate();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			System.out.println("Error executing the SQL statement: <br>" + e.getMessage());
 			error = -1;
 		}
-		try
-		{
+		try {
 			connection.close();
 		}
-		catch (SQLException e)
-		{
+		catch (SQLException e) {
 			System.out.println("Error closing the db connection: " + e.getMessage());
 		}
 		if (error == 1) {
@@ -985,19 +805,12 @@ implements ActionListener
 		return error;
 	}
 
-	private static int sendTo10minLocalDatabase()
-	{
-		//NOT USED: String message;
-		System.out.println(myDBURL);
+	private static int sendTo10minLocalDatabase() {
 		if (myDBURL.equals("none")) {
 			System.out.println("Skipped 10min avg DB send because no DBURL set");
 			return -1;
 		}
 		int didWork = 0;
-
-
-
-
 		String power = String.valueOf(tenMinAvgData[13]);
 		String volts = String.valueOf(tenMinAvgData[6]);
 		String Watts = String.valueOf(tenMinAvgData[4]);
@@ -1005,8 +818,7 @@ implements ActionListener
 		String Wind = String.valueOf(tenMinAvgData[20]);
 		Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + Double.parseDouble(myGMT_Offset) * 3600.0D) * 1000L));
 		String CurrentTime = sqlTimestamp.toString();
-		try
-		{
+		try {
 			String keyString = "Day & time,PowerW, TotalKW, RPM, Wind, Volts";
 			keyString = keyString.replaceAll(" ", "");
 
@@ -1018,8 +830,7 @@ implements ActionListener
 			String[] data = skyDataString.split(",");
 
 			int i = 0;
-			while (i < keys.length)
-			{
+			while (i < keys.length) {
 				dataMap.put(keys[i], data[i]);
 				i++;
 			}
@@ -1028,67 +839,48 @@ implements ActionListener
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
 			String urlString = myDBURL + "?10minavg=yes&systemname=" + mySysName + "&" + "json_data=" + jsonString;
 
-
 			URL url = new URL(urlString);
-
-
-
-
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-
 
 			String check = null;
 			String s;
-			while ((s = br.readLine()) != null)
-			{
+			while ((s = br.readLine()) != null) {
 				if (s != null) {
 					check = s;
 				}
 			}
-			if (check.equals("SUCCESS"))
-			{
+			if (check.equals("SUCCESS")) {
 				didWork = 1;
 				System.out.println("Data was Successfully sent to Local 10minAvg Database (HTTP)");
 				System.out.println("Success");
 			}
-			else
-			{
+			else {
 				didWork = -1;
 				System.out.println("Error sending to Local 10minAvg Database (HTTP) " + s);
 			}
 			br.close();
 		}
-		catch (MalformedURLException e)
-		{
-			//NOT USED: message = "Error executing the  statement: <br>" + e.getMessage();
+		catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
-		catch (IOException e)
-		{
-			//NOT USED: message = "IO exception: <br>" + e.getMessage();
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 		return didWork;
 	}
 
-	private static double readDailyTot()
-	{
+	private static double readDailyTot() {
 		double dailyTot = 0.0D;
-		try
-		{
+		try {
 			String inFileName = "mostcurrentwindturbine.csv";
 			FileReader inFileReader = new FileReader(inFileName);
 			BufferedReader inStream = new BufferedReader(inFileReader);
 			String inLine = null;
 			String lastLine = null;
-			//NOT USED: int i = 0;
-			while ((inLine = inStream.readLine()) != null)
-			{
-				//NOT USED: i++;
+			while ((inLine = inStream.readLine()) != null) {
 				lastLine = inLine;
 			}
-			if (lastLine != null)
-			{
+			if (lastLine != null) {
 				String[] d = lastLine.split(",");
 				if (d.length > 2) {
 					dailyTot = Double.parseDouble(d[5]);
@@ -1096,22 +888,14 @@ implements ActionListener
 			}
 			inStream.close();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			System.out.println("IOExcepton:");
 			e.printStackTrace();
 		}
 		return dailyTot;
 	}
 
-	public static void main(String[] args)
-			throws AWTException, IOException
-	{
-		new windinterface2b_openei(args);
-	}
-
-	public windinterface2b_openei(final String[] args)
-	{
+	public windinterface2b_openei(final String[] args) {
 		for (int j = 0; j < 20; j++) {
 			for (int k = 0; k < 40; k++) {
 				avgData[j][k] = "0";
@@ -1145,29 +929,15 @@ implements ActionListener
 		myDailyTotal = readDailyTot();
 
 		windowSystemName = mySysTitle;
-
-
-
-
-
-
-
-		TimerTask task = new TimerTask()
-		{
-			public void run()
-			{
-				if (!windinterface2b_openei.task2Suspend)
-				{
+		TimerTask task = new TimerTask() {
+			public void run() {
+				if (!windinterface2b_openei.task2Suspend) {
 					String s = windinterface2b_openei.getskzcmd();
 
 					String[] values = s.split(",");
-					if (!values[0].equals("NullPointer Error"))
-					{
+					if (!values[0].equals("NullPointer Error")) {
 						values[0] = values[0].replace("[", "");
 						values[(values.length - 1)] = values[(values.length - 1)].replace("]", "");
-
-
-
 						windinterface2b_openei.wind = Double.parseDouble(values[20]);
 						windinterface2b_openei.power = Double.parseDouble(values[13]);
 						windinterface2b_openei.speed = Double.parseDouble(values[19]);
@@ -1182,56 +952,16 @@ implements ActionListener
 				windinterface2b_openei.doWindInterface(args);
 			}
 		};
-		/*NOT USED: TimerTask task2 = new TimerTask()
-    {
-      public void run()
-      {
-        if (!windinterface2b_openei.task2Suspend)
-        {
-          String s = windinterface2b_openei.getskzcmd();
-
-          String[] values = s.split(",");
-          if (!values[0].equals("NullPointer Error"))
-          {
-            values[0] = values[0].replace("[", "");
-            values[(values.length - 1)] = values[(values.length - 1)].replace("]", "");
-
-
-
-            windinterface2b_openei.wind = Double.parseDouble(values[20]);
-            windinterface2b_openei.power = Double.parseDouble(values[13]);
-            windinterface2b_openei.speed = Double.parseDouble(values[19]);
-            windinterface2b_openei.ts = values[33];
-            windinterface2b_openei.ss = values[35];
-            windinterface2b_openei.gs = values[34];
-            windinterface2b_openei.dayEnergy = Double.parseDouble(values[5]) / 1000.0D;
-            windinterface2b_openei.totEnergy = Double.parseDouble(values[4]) / 1000.0D;
-            windinterface2b_openei.volts = values[6];
-          }
-        }
-      }
-    };*/
 		Timer timer = new Timer();
-		timer.schedule(task, 0L, 30000L);
-
-
-
-
-
+		timer.schedule(task, 0L, 30000L); //Run for 30s with 0s delay....
 		System.out.println("\n");
 	}
 
-	public static String getskzcmd()
-	{
+	public static String getskzcmd() {
 		String[] theData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
-		try
-		{
+		try {
 			double myTime = 0.0D;
-			//NOT USED:double timeUb = 0.0D;double timeLb = 0.0D;double pwrUb = 0.0D;double pwrLb = 0.0D;
 			double pwrTot = 0.0D;
-			//NOT USED: double tempVar = 0.0D;
-			//NOT USED: int i = 0; int numberOfChar = 0;int j = 0;int k = 0;
-
 			String OS = System.getProperty("os.name");
 			String execPath = myPath + "skzcmd.exe -z +" + mySysID + " dstat 1 0";
 			if (!OS.startsWith("Windows")) {
@@ -1240,11 +970,9 @@ implements ActionListener
 			Process p = Runtime.getRuntime().exec(execPath);
 			BufferedReader input2 = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
-			while ((line = input2.readLine()) != null)
-			{
+			while ((line = input2.readLine()) != null) {
 				String[] d = line.split(",");
-				if (d.length >= 2)
-				{
+				if (d.length >= 2) {
 					theData[0] = d[0].replaceAll("\\D", "");
 					String[] tempd1 = d[1].split(" ");
 					theData[1] = tempd1[0].replaceAll("\\D", "");
@@ -1254,17 +982,11 @@ implements ActionListener
 					for (ii = 3; ii < d.length - 1; ii++) {
 						theData[(ii + 3)] = d[ii];
 					}
-					//NOT USED: numberOfChar = Array.getLength(theData);
-
 					myTime = Double.parseDouble(theData[2]);
 
 					pwrTot = Double.parseDouble(theData[4]);
 
 					theData[4] = Double.toString(pwrTot + Double.parseDouble(myPowerOffset));
-
-
-
-
 					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + Double.parseDouble(myGMT_Offset) * 3600.0D) * 1000.0D));
 
 					theData[3] = date;
@@ -1279,58 +1001,37 @@ implements ActionListener
 			}
 			input2.close();
 		}
-		catch (Exception err)
-		{
+		catch (Exception err) {
 			err.printStackTrace();
 		}
 		return Arrays.toString(theData);
 	}
 
-	public static String doPatch()
-	{
-		//NOT USED: String today = now("MM/dd/yyyy");
+	public static String doPatch() {
 		String result;
-
-
-
 		BufferedReader br = null;
-
-		//NOT USED: String year_month = now("yyyy_MM");
-		try
-		{
+		try {
 			URL url = new URL("http://69.20.174.50/mostcurrentwindturbine.csv");
-
 			InputStream is = url.openStream();
 			br = new BufferedReader(new InputStreamReader(is));
 		}
-		catch (MalformedURLException e)
-		{
+		catch (MalformedURLException e) {
 			System.out.println("Bad URL");
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			System.out.println("IO Error Get Data: " + e.getMessage());
 		}
-		try
-		{
-			//NOT USED: boolean eof = false;
+		try {
 			String s = br.readLine();
-			//NOT USED: int i = 0;int numberintemp = 0;int numberOfReadings = 0;int ii = 0;
-			//NOT USED: String date = "nothing";
-			//NOT USED: double dayEnergy = 0.0D;double dayHours = 0.0D;double yesterdayEnergy = 0.0D;double dayStart = 0.0D;
 			String lastLine = s;
-
 			String myString = "";
-
 			String[] d = lastLine.split(",");
 			String power = d[13];
 			String volts = d[6];
 			String Watts = d[4];
 			String RPM = d[19];
 			String Wind = d[20];
-
-
-
+			//TODO: Convert to print() and println()
 			myString = "************* Current Readings at: " + d[3] + "****************" + String.valueOf('\n');
 			myString = myString + " power: " + power + " Watts\t";
 			myString = myString + " volts: " + volts + "\t";
@@ -1341,13 +1042,11 @@ implements ActionListener
 
 			result = s;
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			System.out.println("IO Error : " + e.getMessage());
 			return "IO Error";
 		}
-		catch (NullPointerException npe)
-		{
+		catch (NullPointerException npe) {
 			System.out.println("NullPointer Error : " + npe.getMessage());
 			inData[0] = "0";
 			return "NullPointer Error";
@@ -1355,8 +1054,7 @@ implements ActionListener
 		return result;
 	}
 
-	public void BasicDraw()
-	{
+	public void BasicDraw() {
 		this.window.setSize(530, 250);
 		this.window.setLocation(50, 50);
 
@@ -1364,26 +1062,19 @@ implements ActionListener
 
 
 		this.window.getContentPane().add(myComp);
-
-
-
-
-
 		this.window.setVisible(this.displayWindow);
 
 		windinterface2b_openei.ComponentMover cm = new windinterface2b_openei.ComponentMover();
 		cm.registerComponent(new Component[] { this.window });
 	}
 
-	public void actionPerformed(ActionEvent evt)
-	{
+	public void actionPerformed(ActionEvent evt) {
 		if (evt.getSource() == this.button) {
 			System.exit(0);
 		}
 	}
 
-	public void doEditPref()
-	{
+	public void doEditPref() {
 		String line = "";
 		int doEdit = 0;int doSave = 0;
 
@@ -1405,14 +1096,12 @@ implements ActionListener
 		printPrefs();
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		try
-		{
+		try {
 			System.out.print("Do you wish to change preferences? yes:no ");
 
 			line = reader.readLine();
 		}
-		catch (IOException ioe)
-		{
+		catch (IOException ioe) {
 			System.out.println("error reading IO:");
 			ioe.printStackTrace();
 		}
@@ -1422,17 +1111,13 @@ implements ActionListener
 		if ((line.equals("no")) || (line.equals("NO")) || (line.equals("No")) || (line.equals("n")) || (line.equals("N"))) {
 			doEdit = 0;
 		}
-		if (doEdit > 0)
-		{
+		if (doEdit > 0) {
 			editPref();
-			try
-			{
+			try {
 				System.out.print("Do you wish to save changes? yes:no ");
-
 				line = reader.readLine();
 			}
-			catch (IOException ioe)
-			{
+			catch (IOException ioe) {
 				System.out.println("error reading IO:");
 				ioe.printStackTrace();
 			}
@@ -1448,18 +1133,13 @@ implements ActionListener
 		}
 	}
 
-	private void addElement(Container c, Component e, int x, int y, int h, int w)
-	{
+	private void addElement(Container c, Component e, int x, int y, int h, int w) {
 		e.setBounds(x, y, h, w);
 		c.add(e);
 	}
 
-	public void simpleForm()
-	{
+	public void simpleForm() {
 		String[] data = getPref();
-
-
-
 		mySysTitle = data[0];
 		mySysID = data[1];
 		mySerialNum = data[2];
@@ -1473,7 +1153,6 @@ implements ActionListener
 		myPowerOffset = data[10];
 
 		this.frame.setBackground(new Color(255, 255, 255, 255));
-
 
 		this.frame.getContentPane().add(this.contentPanel, "Center");
 		this.contentPanel.setLayout(null);
@@ -1542,13 +1221,10 @@ implements ActionListener
 		this.jButton2 = new JButton("Cancel");
 		addElement(this.contentPanel, this.jButton2, 0, 440, 100, 30);
 
-		this.jButton1.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
+		this.jButton1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Save Settings?", "Saving Settings?", 0);
-				if (reply == 0)
-				{
+				if (reply == 0) {
 					windinterface2b_openei.windowSystemName = windinterface2b_openei.mySysTitle = windinterface2b_openei.this.jTextField1.getText();
 					windinterface2b_openei.mySysID = windinterface2b_openei.this.jTextField2.getText();
 					windinterface2b_openei.mySerialNum = windinterface2b_openei.this.jTextField3.getText();
@@ -1565,17 +1241,14 @@ implements ActionListener
 					windinterface2b_openei.task2Suspend = false;
 					windinterface2b_openei.this.frame.dispose();
 				}
-				if (reply == 1)
-				{
+				if (reply == 1) {
 					windinterface2b_openei.task2Suspend = false;
 					windinterface2b_openei.this.frame.dispose();
 				}
 			}
 		});
-		this.jButton2.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
+		this.jButton2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				windinterface2b_openei.task2Suspend = false;
 				windinterface2b_openei.this.frame.dispose();
 			}
@@ -1587,26 +1260,20 @@ implements ActionListener
 		this.frame.setVisible(true);
 	}
 
-	public void editPref()
-	{
+	public void editPref() {
 		String line = "";
 		int loop = 1;    
 
-
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		try
-		{
-			while(loop > 0)
-			{
+		try {
+			while(loop > 0) {
 				System.out.print("Enter the line number to change Preferences or '0' to exit: ");
 				String firstline = reader.readLine();
-				try
-				{
+				try {
 					long lint = Long.parseLong(firstline);
 					int l = (int)lint;
 					line = "";
-					switch (l)
-					{
+					switch (l) {
 					case 0: 
 						loop = 0;
 						break;
@@ -1714,16 +1381,14 @@ implements ActionListener
 			}
 
 		}
-		catch (IOException ioe)
-		{
+		catch (IOException ioe) {
 			System.out.println("Something went wrong reading IO:");
 			ioe.printStackTrace();
 		}
 		printPrefs();
 	}
 
-	public void printPrefs()
-	{
+	public void printPrefs() {
 		System.out.println("\nPrefernce Settings:");
 		System.out.println("1)  System Title: " + mySysTitle);
 		System.out.println("2)  System ID: " + mySysID);
@@ -1739,20 +1404,14 @@ implements ActionListener
 		System.out.println("");
 	}
 
-	public String[] setPref()
-	{
+	public String[] setPref() {
 		String[] system_data = { "none", "none", "none", "none", "none", "none", "none", "none", "none", "0", "0" };
 		String myFile = myPath + "windinterfacepref.xml";
-		try
-		{
+		try {
 			System.out.println("Saving Data To " + myFile);
 
 			File file = new File(myFile);
-
-
-
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
 
 			DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -1760,11 +1419,9 @@ implements ActionListener
 			doc.getDocumentElement().normalize();
 
 			NodeList list = doc.getElementsByTagName("system");
-			for (int i = 0; i < list.getLength(); i++)
-			{
+			for (int i = 0; i < list.getLength(); i++) {
 				Node node1 = list.item(i);
-				if (node1.getNodeType() == 1)
-				{
+				if (node1.getNodeType() == 1) {
 					Element element = (Element)node1;
 
 					NodeList sysTitleNodeElementList = element.getElementsByTagName("sys_title");
@@ -1829,8 +1486,7 @@ implements ActionListener
 			StreamResult result = new StreamResult(new FileOutputStream(new File(myFile)));
 			trs.transform(source, result);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		windowSystemName = mySysTitle;
@@ -1839,21 +1495,12 @@ implements ActionListener
 	}
 
 	class MyComponent
-	extends JComponent
-	{
+	extends JComponent {
 		MyComponent() {}
 
-		public void paint(Graphics g)
-		{
+		public void paint(Graphics g) {
 			String path = windinterface2b_openei.myPath + "Images/";
 			DecimalFormat df = new DecimalFormat("#.0");
-
-
-
-
-
-
-
 			String sysName = windinterface2b_openei.windowSystemName + " " + windinterface2b_openei.windowTitle;
 			g.setFont(new Font("Helvetica", 3, 16));
 			FontMetrics fm = g.getFontMetrics();
@@ -1862,8 +1509,6 @@ implements ActionListener
 			FontMetrics fm2 = g.getFontMetrics();
 			int width2 = fm2.stringWidth("Daily Energy: " + df.format(windinterface2b_openei.dayEnergy) + " (KWatt-Hrs)");
 			int width3 = fm2.stringWidth("Total Energy: " + df.format(windinterface2b_openei.totEnergy) + " (KWatt-Hrs)");
-
-
 
 			Graphics2D g2d = (Graphics2D)g;
 
@@ -1876,13 +1521,11 @@ implements ActionListener
 			g2d.drawImage(img0bot, 20, 190, width2 + 25, 30, this);
 			g2d.drawImage(img0bot, 270, 190, width3 + 25, 30, this);
 
-
 			Image img0 = Toolkit.getDefaultToolkit().getImage(path + "frontTransP.png");
 			int imgWidth0 = img0.getWidth(this);
 			int imgHeight0 = img0.getHeight(this);
 
 			g2d.drawImage(img0, 0, 20, imgWidth0 + 50, imgHeight0, this);
-
 
 			Image img0a = Toolkit.getDefaultToolkit().getImage(path + "close.png");
 			int imgWidth0a = img0a.getWidth(this);
@@ -1895,15 +1538,13 @@ implements ActionListener
 			int imgHeight0b = img0b.getHeight(this);
 			g2d.drawImage(img0b, 0, 30, imgWidth0b / 2, imgHeight0b / 2, this);
 
-
-
-
 			Image img1Off = Toolkit.getDefaultToolkit().getImage(path + "skystreamm-trans.png");
 			Image img1On = Toolkit.getDefaultToolkit().getImage(path + "skystreamm-trans2.png");
 			Image img1 = img1Off;
 			if (windinterface2b_openei.speed > 0.0D) {
 				img1 = img1On;
-			} else {
+			}
+			else {
 				img1 = img1Off;
 			}
 			g2d.drawImage(img1, imgWidth0 - 60, 0, 170, imgHeight0 + 10, this);
@@ -1918,11 +1559,14 @@ implements ActionListener
 			double rw = windinterface2b_openei.wind * windinterface2b_openei.windConvert;
 			if (rw == 0.0D) {
 				img2 = imgOff;
-			} else if ((rw > 0.0D) && (rw <= 180.0D)) {
+			}
+			else if ((rw > 0.0D) && (rw <= 180.0D)) {
 				img2 = imgOn;
-			} else if ((rw > 180.0D) && (rw < 270.0D)) {
+			}
+			else if ((rw > 180.0D) && (rw < 270.0D)) {
 				img2 = imgWarn;
-			} else if (rw >= 270.0D) {
+			}
+			else if (rw >= 270.0D) {
 				img2 = imgCrit;
 			}
 			g2d.drawImage(img2, 15, 85, 110, 110, this);
@@ -1932,11 +1576,14 @@ implements ActionListener
 			double rs = windinterface2b_openei.speed * windinterface2b_openei.speedConvert;
 			if (rs == 0.0D) {
 				img3 = imgOff;
-			} else if ((rs > 0.0D) && (rs <= 180.0D)) {
+			}
+			else if ((rs > 0.0D) && (rs <= 180.0D)) {
 				img3 = imgOn;
-			} else if ((rs > 180.0D) && (rs < 270.0D)) {
+			}
+			else if ((rs > 180.0D) && (rs < 270.0D)) {
 				img3 = imgWarn;
-			} else if (rs >= 270.0D) {
+			}
+			else if (rs >= 270.0D) {
 				img3 = imgCrit;
 			}
 			g2d.drawImage(img3, 125, 85, 110, 110, this);
@@ -1946,11 +1593,14 @@ implements ActionListener
 			double rp = windinterface2b_openei.power * windinterface2b_openei.powerConvert;
 			if (rp == 0.0D) {
 				img4 = imgOff;
-			} else if ((rp > 0.0D) && (rp <= 180.0D)) {
+			}
+			else if ((rp > 0.0D) && (rp <= 180.0D)) {
 				img4 = imgOn;
-			} else if ((rp > 180.0D) && (rp < 270.0D)) {
+			}
+			else if ((rp > 180.0D) && (rp < 270.0D)) {
 				img4 = imgWarn;
-			} else if (rp >= 270.0D) {
+			}
+			else if (rp >= 270.0D) {
 				img4 = imgCrit;
 			}
 			g2d.drawImage(img4, 260, 58, 140, 140, this);
@@ -1967,11 +1617,14 @@ implements ActionListener
 			double v = Double.parseDouble(windinterface2b_openei.volts) * windinterface2b_openei.voltsConvert;
 			if (v == 0.0D) {
 				img5 = imgVOff;
-			} else if ((v > 0.0D) && (v <= 3.0D)) {
+			}
+			else if ((v > 0.0D) && (v <= 3.0D)) {
 				img5 = imgVOn;
-			} else if ((v > 3.0D) && (v < 8.0D)) {
+			}
+			else if ((v > 3.0D) && (v < 8.0D)) {
 				img5 = imgVWarn;
-			} else if (v >= 8.0D) {
+			}
+			else if (v >= 8.0D) {
 				img5 = imgVCrit;
 			}
 			for (int i = 0; i <= v; i++) {
@@ -1984,11 +1637,14 @@ implements ActionListener
 			double de = windinterface2b_openei.dayEnergy * windinterface2b_openei.dayEnergyConvert;
 			if (de == 0.0D) {
 				img6 = imgVOff;
-			} else if ((de > 0.0D) && (de <= 3.0D)) {
+			}
+			else if ((de > 0.0D) && (de <= 3.0D)) {
 				img6 = imgVOn;
-			} else if ((de > 3.0D) && (de < 6.0D)) {
+			}
+			else if ((de > 3.0D) && (de < 6.0D)) {
 				img6 = imgVWarn;
-			} else if (de >= 6.0D) {
+			}
+			else if (de >= 6.0D) {
 				img6 = imgVCrit;
 			}
 			for (int i = 0; i <= de; i++) {
@@ -1996,18 +1652,13 @@ implements ActionListener
 			}
 			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			env.getAvailableFontFamilyNames();
-
-
-
 			g.setFont(new Font("Helvetica", 3, 16));
 
 			g2d.setPaint(Color.LIGHT_GRAY);
 
-
 			g2d.drawString(sysName, 17, 26);
 			g2d.setPaint(Color.black);
 			g2d.drawString(sysName, 15, 25);
-
 
 			g.setFont(new Font("Helvetica", 0, 14));
 			g2d.setPaint(Color.LIGHT_GRAY);
@@ -2042,14 +1693,10 @@ implements ActionListener
 			g2d.drawString("T:" + windinterface2b_openei.ts + " S:" + windinterface2b_openei.ss + " G:" + windinterface2b_openei.gs + " Status", 240, 48);
 			g2d.drawString(windinterface2b_openei.volts, 392, 180);
 
-
-
 			g2d.drawString(df.format(windinterface2b_openei.wind), 55, 180);
 			g2d.drawString(df.format(windinterface2b_openei.speed), 163, 180);
 			g2d.drawString(df.format(windinterface2b_openei.power), 310, 180);
 			g2d.drawString(df.format(windinterface2b_openei.dayEnergy), 230, 180);
-
-
 			AffineTransform tx = new AffineTransform();
 
 			double pi = 3.141592653589793D;
@@ -2061,7 +1708,6 @@ implements ActionListener
 			}
 			tx.scale(0.3D, 0.3D);
 			tx.translate(200.0D, 440.0D);
-
 
 			ImageIcon dial = new ImageIcon(path + "myGaugePointer2.png");
 			int iconX = 0;
@@ -2101,9 +1747,7 @@ implements ActionListener
 		}
 	}
 
-	public class ComponentMover
-	extends MouseAdapter
-	{
+	public class ComponentMover extends MouseAdapter {
 		private Class<?> destinationClass;
 		private Component destinationComponent;
 		private Component destination;
@@ -2118,64 +1762,53 @@ implements ActionListener
 
 		public ComponentMover() {}
 
-		public ComponentMover(Class<?> destinationClass, Component... components)
-		{
+		public ComponentMover(Class<?> destinationClass, Component... components) {
 			this.destinationClass = destinationClass;
 			registerComponent(components);
 		}
 
-		public ComponentMover(Component destinationComponent, Component... components)
-		{
+		public ComponentMover(Component destinationComponent, Component... components) {
 			this.destinationComponent = destinationComponent;
 			registerComponent(components);
 		}
 
-		public boolean isChangeCursor()
-		{
+		public boolean isChangeCursor() {
 			return this.changeCursor;
 		}
 
-		public void setChangeCursor(boolean changeCursor)
-		{
+		public void setChangeCursor(boolean changeCursor) {
 			this.changeCursor = changeCursor;
 		}
 
-		public Insets getDragInsets()
-		{
+		public Insets getDragInsets() {
 			return this.dragInsets;
 		}
 
-		public void setDragInsets(Insets dragInsets)
-		{
+		public void setDragInsets(Insets dragInsets) {
 			this.dragInsets = dragInsets;
 		}
 
-		public void deregisterComponent(Component... components)
-		{
+		public void deregisterComponent(Component... components) {
 			for (Component component : components) {
 				component.removeMouseListener(this);
 			}
 		}
 
-		public void registerComponent(Component... components)
-		{
+		public void registerComponent(Component... components) {
 			for (Component component : components) {
 				component.addMouseListener(this);
 			}
 		}
 
-		public Dimension getSnapSize()
-		{
+		public Dimension getSnapSize() {
 			return this.snapSize;
 		}
 
-		public void setSnapSize(Dimension snapSize)
-		{
+		public void setSnapSize(Dimension snapSize) {
 			this.snapSize = snapSize;
 		}
 
-		public void mousePressed(MouseEvent e)
-		{
+		public void mousePressed(MouseEvent e) {
 			this.source = e.getComponent();
 			int width = this.source.getSize().width - this.dragInsets.left - this.dragInsets.right;
 			int height = this.source.getSize().height - this.dragInsets.top - this.dragInsets.bottom;
@@ -2185,63 +1818,56 @@ implements ActionListener
 			}
 		}
 
-		public void mouseClicked(MouseEvent e)
-		{
+		public void mouseClicked(MouseEvent e) {
 			int deltaX = (int)this.pressed.getX() - (int)this.location.getX() - 10;
 			int deltaY = (int)this.pressed.getY() - (int)this.location.getY() - 10;
-			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= -10) && (deltaY < 10))
-			{
+			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= -10) && (deltaY < 10)) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish To Exit?", "Quit", 0);
 				if (reply == 0) {
 					System.exit(0);
 				}
 			}
-			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= 20) && (deltaY < 40))
-			{
+			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= 20) && (deltaY < 40)) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Edit Settings?", "Edit Settings?", 0);
-				if (reply == 0)
-				{
+				if (reply == 0) {
 					windinterface2b_openei.task2Suspend = true;
 					windinterface2b_openei.this.simpleForm();
 				}
 			}
 		}
 
-		private void setupForDragging(MouseEvent e)
-		{
+		private void setupForDragging(MouseEvent e) {
 			this.source.addMouseMotionListener(this);
 			if (this.destinationComponent != null) {
 				this.destination = this.destinationComponent;
-			} else if (this.destinationClass == null) {
+			}
+			else if (this.destinationClass == null) {
 				this.destination = this.source;
-			} else {
+			}
+			else {
 				this.destination = SwingUtilities.getAncestorOfClass(this.destinationClass, this.source);
 			}
 			this.pressed = e.getLocationOnScreen();
 			this.location = this.destination.getLocation();
-			if (this.changeCursor)
-			{
+			if (this.changeCursor) {
 				this.originalCursor = this.source.getCursor();
 				this.source.setCursor(Cursor.getPredefinedCursor(13));
 			}
-			if ((this.destination instanceof JComponent))
-			{
+			if ((this.destination instanceof JComponent)) {
 				JComponent jc = (JComponent)this.destination;
 				this.autoscrolls = jc.getAutoscrolls();
 				jc.setAutoscrolls(false);
 			}
 		}
 
-		public void mouseDragged(MouseEvent e)
-		{
+		public void mouseDragged(MouseEvent e) {
 			Point dragged = e.getLocationOnScreen();
 			int dragX = getDragDistance(dragged.x, this.pressed.x, this.snapSize.width);
 			int dragY = getDragDistance(dragged.y, this.pressed.y, this.snapSize.height);
 			this.destination.setLocation(this.location.x + dragX, this.location.y + dragY);
 		}
 
-		private int getDragDistance(int larger, int smaller, int snapSize)
-		{
+		private int getDragDistance(int larger, int smaller, int snapSize) {
 			int halfway = snapSize / 2;
 			int drag = larger - smaller;
 			drag += (drag < 0 ? -halfway : halfway);
@@ -2250,8 +1876,7 @@ implements ActionListener
 			return drag;
 		}
 
-		public void mouseReleased(MouseEvent e)
-		{
+		public void mouseReleased(MouseEvent e) {
 			this.source.removeMouseMotionListener(this);
 			if (this.changeCursor) {
 				this.source.setCursor(this.originalCursor);
