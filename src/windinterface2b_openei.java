@@ -1058,21 +1058,21 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 	}
 
 	public void BasicDraw() {
-		this.window.setSize(530, 250);
-		this.window.setLocation(50, 50);
+		window.setSize(530, 250);
+		window.setLocation(50, 50);
 
 		JComponent myComp = new MyComponent();
 
 
-		this.window.getContentPane().add(myComp);
-		this.window.setVisible(this.displayWindow);
+		window.getContentPane().add(myComp);
+		window.setVisible(displayWindow);
 
 		ComponentMover cm = new ComponentMover();
-		cm.registerComponent(new Component[] { this.window });
+		cm.registerComponent(new Component[] { window });
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		if (evt.getSource() == this.button) {
+		if (evt.getSource() == button) {
 			System.exit(0);
 		}
 	}
@@ -1155,76 +1155,76 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		myGMT_Offset = data[9];
 		myPowerOffset = data[10];
 
-		this.frame.setBackground(new Color(255, 255, 255, 255));
+		frame.setBackground(new Color(255, 255, 255, 255));
 
-		this.frame.getContentPane().add(this.contentPanel, "Center");
-		this.contentPanel.setLayout(null);
-		this.jLabel1 = new JLabel("System Title:");
-		addElement(this.contentPanel, this.jLabel1, 10, 0, 250, 20);
-		this.jTextField1 = new JTextField(mySysTitle);
-		this.jTextField1.setToolTipText("Enter the Name for your system");
-		addElement(this.contentPanel, this.jTextField1, 10, 20, 250, 20);
-		this.jLabel2 = new JLabel("Turbine System ID (zigbee)");
-		addElement(this.contentPanel, this.jLabel2, 10, 40, 250, 20);
-		this.jTextField2 = new JTextField(mySysID);
-		this.jTextField2.setToolTipText("Enter the zigbee ID number i.e. 000abc00");
-		addElement(this.contentPanel, this.jTextField2, 10, 60, 250, 20);
-		this.jLabel3 = new JLabel("Turbine System Serial Number");
-		addElement(this.contentPanel, this.jLabel3, 10, 80, 250, 20);
-		this.jTextField3 = new JTextField(mySerialNum);
-		this.jTextField3.setToolTipText("Enter the System serial number i.e. 1010-XXXX");
-		addElement(this.contentPanel, this.jTextField3, 10, 100, 250, 20);
-		this.jLabel4 = new JLabel("Local Database URL");
-		addElement(this.contentPanel, this.jLabel4, 10, 120, 250, 20);
-		this.jTextField4 = new JTextField(myDBURL);
-		this.jTextField4.setToolTipText("Optional: leave as \"none\" for no local database");
-		addElement(this.contentPanel, this.jTextField4, 10, 140, 250, 20);
-		this.jLabel5 = new JLabel("System Name for local Database");
-		addElement(this.contentPanel, this.jLabel5, 10, 160, 250, 20);
-		this.jTextField5 = new JTextField(mySysName);
-		this.jTextField5.setToolTipText("Optional: leave as \"none\" for no local database");
-		addElement(this.contentPanel, this.jTextField5, 10, 180, 250, 20);
+		frame.getContentPane().add(contentPanel, "Center");
+		contentPanel.setLayout(null);
+		jLabel1 = new JLabel("System Title:");
+		addElement(contentPanel, jLabel1, 10, 0, 250, 20);
+		jTextField1 = new JTextField(mySysTitle);
+		jTextField1.setToolTipText("Enter the Name for your system");
+		addElement(contentPanel, jTextField1, 10, 20, 250, 20);
+		jLabel2 = new JLabel("Turbine System ID (zigbee)");
+		addElement(contentPanel, jLabel2, 10, 40, 250, 20);
+		jTextField2 = new JTextField(mySysID);
+		jTextField2.setToolTipText("Enter the zigbee ID number i.e. 000abc00");
+		addElement(contentPanel, jTextField2, 10, 60, 250, 20);
+		jLabel3 = new JLabel("Turbine System Serial Number");
+		addElement(contentPanel, jLabel3, 10, 80, 250, 20);
+		jTextField3 = new JTextField(mySerialNum);
+		jTextField3.setToolTipText("Enter the System serial number i.e. 1010-XXXX");
+		addElement(contentPanel, jTextField3, 10, 100, 250, 20);
+		jLabel4 = new JLabel("Local Database URL");
+		addElement(contentPanel, jLabel4, 10, 120, 250, 20);
+		jTextField4 = new JTextField(myDBURL);
+		jTextField4.setToolTipText("Optional: leave as \"none\" for no local database");
+		addElement(contentPanel, jTextField4, 10, 140, 250, 20);
+		jLabel5 = new JLabel("System Name for local Database");
+		addElement(contentPanel, jLabel5, 10, 160, 250, 20);
+		jTextField5 = new JTextField(mySysName);
+		jTextField5.setToolTipText("Optional: leave as \"none\" for no local database");
+		addElement(contentPanel, jTextField5, 10, 180, 250, 20);
 
-		this.jLabel6 = new JLabel("Address for backup Mysql Database");
-		addElement(this.contentPanel, this.jLabel6, 10, 200, 250, 20);
-		this.jTextField6 = new JTextField(myMysqlURL);
-		this.jTextField6.setToolTipText("Optional: leave as \"none\" for no backup database");
-		addElement(this.contentPanel, this.jTextField6, 10, 220, 250, 20);
+		jLabel6 = new JLabel("Address for backup Mysql Database");
+		addElement(contentPanel, jLabel6, 10, 200, 250, 20);
+		jTextField6 = new JTextField(myMysqlURL);
+		jTextField6.setToolTipText("Optional: leave as \"none\" for no backup database");
+		addElement(contentPanel, jTextField6, 10, 220, 250, 20);
 
-		this.jLabel7 = new JLabel("User name for backup Mysql Database");
-		addElement(this.contentPanel, this.jLabel7, 10, 240, 250, 20);
-		this.jTextField7 = new JTextField(myMysqlUser);
-		this.jTextField7.setToolTipText("Optional: leave as \"none\" for no backup database");
-		addElement(this.contentPanel, this.jTextField7, 10, 260, 250, 20);
+		jLabel7 = new JLabel("User name for backup Mysql Database");
+		addElement(contentPanel, jLabel7, 10, 240, 250, 20);
+		jTextField7 = new JTextField(myMysqlUser);
+		jTextField7.setToolTipText("Optional: leave as \"none\" for no backup database");
+		addElement(contentPanel, jTextField7, 10, 260, 250, 20);
 
-		this.jLabel8 = new JLabel("Password for backup Mysql Database");
-		addElement(this.contentPanel, this.jLabel8, 10, 280, 250, 20);
-		this.jTextField8 = new JTextField(myMysqlPass);
-		this.jTextField8.setToolTipText("Optional: leave as \"none\" for no backup database");
-		addElement(this.contentPanel, this.jTextField8, 10, 300, 250, 20);
+		jLabel8 = new JLabel("Password for backup Mysql Database");
+		addElement(contentPanel, jLabel8, 10, 280, 250, 20);
+		jTextField8 = new JTextField(myMysqlPass);
+		jTextField8.setToolTipText("Optional: leave as \"none\" for no backup database");
+		addElement(contentPanel, jTextField8, 10, 300, 250, 20);
 
-		this.jLabel9 = new JLabel("API-Key for OpenEI Database");
-		addElement(this.contentPanel, this.jLabel9, 10, 320, 250, 20);
-		this.jTextField9 = new JTextField(myApiKey);
-		this.jTextField9.setToolTipText("API Key is required for openEI access");
-		addElement(this.contentPanel, this.jTextField9, 10, 340, 250, 20);
-		this.jLabel10 = new JLabel("GMT time offset for local timezone");
-		addElement(this.contentPanel, this.jLabel10, 10, 360, 250, 20);
-		this.jTextField10 = new JTextField(myGMT_Offset);
-		this.jTextField10.setToolTipText("Enter in the time offset from Greenwich Mean Time for your local time zone");
-		addElement(this.contentPanel, this.jTextField10, 10, 380, 250, 20);
-		this.jLabel11 = new JLabel("*Power Offset");
-		addElement(this.contentPanel, this.jLabel11, 10, 400, 250, 20);
-		this.jTextField11 = new JTextField(myPowerOffset);
-		this.jTextField11.setToolTipText("Optional: add watts to correct/adjust output");
-		addElement(this.contentPanel, this.jTextField11, 10, 420, 250, 20);
+		jLabel9 = new JLabel("API-Key for OpenEI Database");
+		addElement(contentPanel, jLabel9, 10, 320, 250, 20);
+		jTextField9 = new JTextField(myApiKey);
+		jTextField9.setToolTipText("API Key is required for openEI access");
+		addElement(contentPanel, jTextField9, 10, 340, 250, 20);
+		jLabel10 = new JLabel("GMT time offset for local timezone");
+		addElement(contentPanel, jLabel10, 10, 360, 250, 20);
+		jTextField10 = new JTextField(myGMT_Offset);
+		jTextField10.setToolTipText("Enter in the time offset from Greenwich Mean Time for your local time zone");
+		addElement(contentPanel, jTextField10, 10, 380, 250, 20);
+		jLabel11 = new JLabel("*Power Offset");
+		addElement(contentPanel, jLabel11, 10, 400, 250, 20);
+		jTextField11 = new JTextField(myPowerOffset);
+		jTextField11.setToolTipText("Optional: add watts to correct/adjust output");
+		addElement(contentPanel, jTextField11, 10, 420, 250, 20);
 
-		this.jButton1 = new JButton("Save");
-		addElement(this.contentPanel, this.jButton1, 200, 440, 100, 30);
-		this.jButton2 = new JButton("Cancel");
-		addElement(this.contentPanel, this.jButton2, 0, 440, 100, 30);
+		jButton1 = new JButton("Save");
+		addElement(contentPanel, jButton1, 200, 440, 100, 30);
+		jButton2 = new JButton("Cancel");
+		addElement(contentPanel, jButton2, 0, 440, 100, 30);
 
-		this.jButton1.addActionListener(new ActionListener() {
+		jButton1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Save Settings?", "Saving Settings?", 0);
 				if (reply == 0) {
@@ -1250,17 +1250,17 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 				}
 			}
 		});
-		this.jButton2.addActionListener(new ActionListener() {
+		jButton2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				task2Suspend = false;
 				frame.dispose();
 			}
 		});
-		this.frame.setTitle("Windinterface Preferences");
-		this.frame.setSize(320, 510);
-		this.frame.setLocation(new Point(150, 150));
+		frame.setTitle("Windinterface Preferences");
+		frame.setSize(320, 510);
+		frame.setLocation(new Point(150, 150));
 
-		this.frame.setVisible(true);
+		frame.setVisible(true);
 	}
 
 	public void editPref() {
@@ -1776,7 +1776,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 
 		public boolean isChangeCursor() {
-			return this.changeCursor;
+			return changeCursor;
 		}
 
 		public void setChangeCursor(boolean changeCursor) {
@@ -1784,7 +1784,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 
 		public Insets getDragInsets() {
-			return this.dragInsets;
+			return dragInsets;
 		}
 
 		public void setDragInsets(Insets dragInsets) {
@@ -1804,7 +1804,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 
 		public Dimension getSnapSize() {
-			return this.snapSize;
+			return snapSize;
 		}
 
 		public void setSnapSize(Dimension snapSize) {
@@ -1812,18 +1812,18 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 
 		public void mousePressed(MouseEvent e) {
-			this.source = e.getComponent();
-			int width = this.source.getSize().width - this.dragInsets.left - this.dragInsets.right;
-			int height = this.source.getSize().height - this.dragInsets.top - this.dragInsets.bottom;
-			Rectangle r = new Rectangle(this.dragInsets.left, this.dragInsets.top, width, height);
+			source = e.getComponent();
+			int width = source.getSize().width - dragInsets.left - dragInsets.right;
+			int height = source.getSize().height - dragInsets.top - dragInsets.bottom;
+			Rectangle r = new Rectangle(dragInsets.left, dragInsets.top, width, height);
 			if (r.contains(e.getPoint())) {
 				setupForDragging(e);
 			}
 		}
 
 		public void mouseClicked(MouseEvent e) {
-			int deltaX = (int)this.pressed.getX() - (int)this.location.getX() - 10;
-			int deltaY = (int)this.pressed.getY() - (int)this.location.getY() - 10;
+			int deltaX = (int)pressed.getX() - (int)location.getX() - 10;
+			int deltaY = (int)pressed.getY() - (int)location.getY() - 10;
 			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= -10) && (deltaY < 10)) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish To Exit?", "Quit", 0);
 				if (reply == 0) {
@@ -1840,34 +1840,34 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 
 		private void setupForDragging(MouseEvent e) {
-			this.source.addMouseMotionListener(this);
-			if (this.destinationComponent != null) {
-				this.destination = this.destinationComponent;
+			source.addMouseMotionListener(this);
+			if (destinationComponent != null) {
+				destination = destinationComponent;
 			}
-			else if (this.destinationClass == null) {
-				this.destination = this.source;
+			else if (destinationClass == null) {
+				destination = source;
 			}
 			else {
-				this.destination = SwingUtilities.getAncestorOfClass(this.destinationClass, this.source);
+				destination = SwingUtilities.getAncestorOfClass(destinationClass, source);
 			}
-			this.pressed = e.getLocationOnScreen();
-			this.location = this.destination.getLocation();
-			if (this.changeCursor) {
-				this.originalCursor = this.source.getCursor();
-				this.source.setCursor(Cursor.getPredefinedCursor(13));
+			pressed = e.getLocationOnScreen();
+			location = destination.getLocation();
+			if (changeCursor) {
+				originalCursor = source.getCursor();
+				source.setCursor(Cursor.getPredefinedCursor(13));
 			}
-			if ((this.destination instanceof JComponent)) {
-				JComponent jc = (JComponent)this.destination;
-				this.autoscrolls = jc.getAutoscrolls();
+			if ((destination instanceof JComponent)) {
+				JComponent jc = (JComponent)destination;
+				autoscrolls = jc.getAutoscrolls();
 				jc.setAutoscrolls(false);
 			}
 		}
 
 		public void mouseDragged(MouseEvent e) {
 			Point dragged = e.getLocationOnScreen();
-			int dragX = getDragDistance(dragged.x, this.pressed.x, this.snapSize.width);
-			int dragY = getDragDistance(dragged.y, this.pressed.y, this.snapSize.height);
-			this.destination.setLocation(this.location.x + dragX, this.location.y + dragY);
+			int dragX = getDragDistance(dragged.x, pressed.x, snapSize.width);
+			int dragY = getDragDistance(dragged.y, pressed.y, snapSize.height);
+			destination.setLocation(location.x + dragX, location.y + dragY);
 		}
 
 		private int getDragDistance(int larger, int smaller, int snapSize) {
@@ -1880,12 +1880,12 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 
 		public void mouseReleased(MouseEvent e) {
-			this.source.removeMouseMotionListener(this);
-			if (this.changeCursor) {
-				this.source.setCursor(this.originalCursor);
+			source.removeMouseMotionListener(this);
+			if (changeCursor) {
+				source.setCursor(originalCursor);
 			}
-			if ((this.destination instanceof JComponent)) {
-				((JComponent)this.destination).setAutoscrolls(this.autoscrolls);
+			if ((destination instanceof JComponent)) {
+				((JComponent)destination).setAutoscrolls(autoscrolls);
 			}
 		}
 	}
