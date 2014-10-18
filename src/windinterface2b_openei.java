@@ -75,47 +75,46 @@ import org.w3c.dom.NodeList;
 
 @SuppressWarnings("serial")
 public class windinterface2b_openei extends HttpServlet implements ActionListener {
-	static BufferedReader inputData;
-	static String[] inData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
-	static String[][] avgData = new String[20][40];
-	static int sendToDBError = 1;
-	static int sendToDBOptError = 1;
-	static int avgCount = 0;
-	static int maxAvgCount = 20;
-	static double[] tenMinAvgData = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
-	static double myDailyTotal = 0.0D;
-	static double[] tenMinAvgData2 = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
-	static boolean averagesReadyToPrint = false;
-	static String mySysTitle;
-	static String mySysID;
-	static String mySerialNum;
-	static String myDBURL;
-	static String myMysqlURL;
-	static String myMysqlUser;
-	static String myMysqlPass;
-	static String mySysName;
-	static String myApiKey;
-	static String myGMT_Offset;
-	static String myPowerOffset;
+	BufferedReader inputData;
+	String[] inData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
+	String[][] avgData = new String[20][40];
+	 int sendToDBError = 1;
+	int sendToDBOptError = 1;
+	int avgCount = 0;
+	int maxAvgCount = 20;
+	double[] tenMinAvgData = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
+	double myDailyTotal = 0.0D;
+	boolean averagesReadyToPrint = false;
+	String mySysTitle;
+	String mySysID;
+	String mySerialNum;
+	String myDBURL;
+	String myMysqlURL;
+	String myMysqlUser;
+	String myMysqlPass;
+	String mySysName;
+	String myApiKey;
+	String myGMT_Offset;
+	String myPowerOffset;
 	public static String turbineName = "Test";
 	public static String turbineID = "10xxx";
 	public static String myPath = "resources/";
-	static double power = 0.0D;
-	static double wind = 0.0D;
-	static double speed = 0.0D;
-	static double windConvert = 7.2D;
-	static double speedConvert = 1.125D;
-	static double powerConvert = 0.12D;
-	static double voltsConvert = 0.03571428571428571D;
-	static double dayEnergyConvert = 0.2D;
-	static String ts = "0000";
-	static String ss = "0000";
-	static String gs = "0000";
-	static double dayEnergy = 35.0D;
-	static double totEnergy = 10000.0D;
-	static String volts = "250";
-	static String windowSystemName = "Turbine";
-	static String windowTitle = "Skystream Wind Turbine";
+	double power = 0.0D;
+	double wind = 0.0D;
+	double speed = 0.0D;
+	double windConvert = 7.2D;
+	double speedConvert = 1.125D;
+	double powerConvert = 0.12D;
+	double voltsConvert = 0.03571428571428571D;
+	double dayEnergyConvert = 0.2D;
+	String ts = "0000";
+	String ss = "0000";
+	String gs = "0000";
+	double dayEnergy = 35.0D;
+	double totEnergy = 10000.0D;
+	String volts = "250";
+	String windowSystemName = "Turbine";
+	String windowTitle = "Skystream Wind Turbine";
 	boolean moved = false;
 	boolean displayFrame = true;
 	boolean displayWindow = true;
@@ -151,13 +150,13 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 	JTextField jTextField9 = new JTextField();
 	JTextField jTextField10 = new JTextField();
 	JTextField jTextField11 = new JTextField();
-	static boolean task2Suspend = false;
+	boolean task2Suspend = false;
 
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2b_openei(args);
 	}
 	
-	public static String[] getPref() {
+	public String[] getPref() {
 		String[] system_data = { "none", "none", "none", "none", "none", "none", "none", "none", "none", "0", "0" };
 		try {
 			File file = new File(myPath + "windinterfacepref.xml");
@@ -235,13 +234,13 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return system_data;
 	}
 
-	public static String now(String dateFormat) {
+	public String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
 		return sdf.format(cal.getTime());
 	}
 
-	public static void doWindInterface(String[] args) {
+	public void doWindInterface(String[] args) {
 		try {
 			if (args.length >= 0) {
 				String outFileName = "windturbinecurrent.txt";
@@ -399,7 +398,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 	}
 
-	public static void runskzcmd() {
+	public void runskzcmd() {
 		try {
 			double myTime = 0.0D;
 			double pwrTot = 0.0D;
@@ -574,7 +573,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 	}
 
-	private static int sendToOpenEIDataBase(String baseURL, String[] inData) {
+	private int sendToOpenEIDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
 		String[] d = inData;
 		String power = d[13];
@@ -654,7 +653,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		}
 		return didWork;
 	}
-	private static int sendToLocalDataBase(String baseURL, String[] inData) {
+	private int sendToLocalDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
 		String[] d = inData;
 		String power = d[13];
@@ -737,7 +736,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return didWork;
 	}
 
-	private static int sendTo30sMysqlDatabase(String[] inData) {
+	private int sendTo30sMysqlDatabase(String[] inData) {
 		int error = 1;
 
 		String[] d = inData;
@@ -805,7 +804,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return error;
 	}
 
-	private static int sendTo10minLocalDatabase() {
+	private int sendTo10minLocalDatabase() {
 		if (myDBURL.equals("none")) {
 			System.out.println("Skipped 10min avg DB send because no DBURL set");
 			return -1;
@@ -869,7 +868,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return didWork;
 	}
 
-	private static double readDailyTot() {
+	private double readDailyTot() {
 		double dailyTot = 0.0D;
 		try {
 			String inFileName = "mostcurrentwindturbine.csv";
@@ -931,33 +930,37 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		windowSystemName = mySysTitle;
 		TimerTask task = new TimerTask() {
 			public void run() {
-				if (!windinterface2b_openei.task2Suspend) {
-					String s = windinterface2b_openei.getskzcmd();
-
-					String[] values = s.split(",");
-					if (!values[0].equals("NullPointer Error")) {
-						values[0] = values[0].replace("[", "");
-						values[(values.length - 1)] = values[(values.length - 1)].replace("]", "");
-						windinterface2b_openei.wind = Double.parseDouble(values[20]);
-						windinterface2b_openei.power = Double.parseDouble(values[13]);
-						windinterface2b_openei.speed = Double.parseDouble(values[19]);
-						windinterface2b_openei.ts = values[33];
-						windinterface2b_openei.ss = values[35];
-						windinterface2b_openei.gs = values[34];
-						windinterface2b_openei.dayEnergy = Double.parseDouble(values[5]) / 1000.0D;
-						windinterface2b_openei.totEnergy = Double.parseDouble(values[4]) / 1000.0D;
-						windinterface2b_openei.volts = values[6];
-					}
-				}
-				windinterface2b_openei.doWindInterface(args);
+				timerrun(args);
 			}
 		};
 		Timer timer = new Timer();
 		timer.schedule(task, 0L, 30000L); //Run for 30s with 0s delay....
 		System.out.println("\n");
 	}
+	
+	public void timerrun (String[] args) {
+		if (!task2Suspend) {
+			String s = getskzcmd();
 
-	public static String getskzcmd() {
+			String[] values = s.split(",");
+			if (!values[0].equals("NullPointer Error")) {
+				values[0] = values[0].replace("[", "");
+				values[(values.length - 1)] = values[(values.length - 1)].replace("]", "");
+				wind = Double.parseDouble(values[20]);
+				power = Double.parseDouble(values[13]);
+				speed = Double.parseDouble(values[19]);
+				ts = values[33];
+				ss = values[35];
+				gs = values[34];
+				dayEnergy = Double.parseDouble(values[5]) / 1000.0D;
+				totEnergy = Double.parseDouble(values[4]) / 1000.0D;
+				volts = values[6];
+			}
+		}
+		doWindInterface(args);
+	}
+
+	public String getskzcmd() {
 		String[] theData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
 		try {
 			double myTime = 0.0D;
@@ -1007,7 +1010,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		return Arrays.toString(theData);
 	}
 
-	public static String doPatch() {
+	public String doPatch() {
 		String result;
 		BufferedReader br = null;
 		try {
@@ -1058,13 +1061,13 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		this.window.setSize(530, 250);
 		this.window.setLocation(50, 50);
 
-		JComponent myComp = new windinterface2b_openei.MyComponent();
+		JComponent myComp = new MyComponent();
 
 
 		this.window.getContentPane().add(myComp);
 		this.window.setVisible(this.displayWindow);
 
-		windinterface2b_openei.ComponentMover cm = new windinterface2b_openei.ComponentMover();
+		ComponentMover cm = new ComponentMover();
 		cm.registerComponent(new Component[] { this.window });
 	}
 
@@ -1225,32 +1228,32 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			public void actionPerformed(ActionEvent e) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Save Settings?", "Saving Settings?", 0);
 				if (reply == 0) {
-					windinterface2b_openei.windowSystemName = windinterface2b_openei.mySysTitle = windinterface2b_openei.this.jTextField1.getText();
-					windinterface2b_openei.mySysID = windinterface2b_openei.this.jTextField2.getText();
-					windinterface2b_openei.mySerialNum = windinterface2b_openei.this.jTextField3.getText();
-					windinterface2b_openei.myDBURL = windinterface2b_openei.this.jTextField4.getText();
-					windinterface2b_openei.mySysName = windinterface2b_openei.this.jTextField5.getText();
-					windinterface2b_openei.myMysqlURL = windinterface2b_openei.this.jTextField6.getText();
-					windinterface2b_openei.myMysqlUser = windinterface2b_openei.this.jTextField7.getText();
-					windinterface2b_openei.myMysqlPass = windinterface2b_openei.this.jTextField8.getText();
-					windinterface2b_openei.myApiKey = windinterface2b_openei.this.jTextField9.getText();
-					windinterface2b_openei.myGMT_Offset = windinterface2b_openei.this.jTextField10.getText();
-					windinterface2b_openei.myPowerOffset = windinterface2b_openei.this.jTextField11.getText();
+					windowSystemName = mySysTitle = jTextField1.getText();
+					mySysID = jTextField2.getText();
+					mySerialNum = jTextField3.getText();
+					myDBURL = jTextField4.getText();
+					mySysName = jTextField5.getText();
+					myMysqlURL = jTextField6.getText();
+					myMysqlUser = jTextField7.getText();
+					myMysqlPass = jTextField8.getText();
+					myApiKey = jTextField9.getText();
+					myGMT_Offset = jTextField10.getText();
+					myPowerOffset = jTextField11.getText();
 
-					windinterface2b_openei.this.setPref();
-					windinterface2b_openei.task2Suspend = false;
-					windinterface2b_openei.this.frame.dispose();
+					setPref();
+					task2Suspend = false;
+					frame.dispose();
 				}
 				if (reply == 1) {
-					windinterface2b_openei.task2Suspend = false;
-					windinterface2b_openei.this.frame.dispose();
+					task2Suspend = false;
+					frame.dispose();
 				}
 			}
 		});
 		this.jButton2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				windinterface2b_openei.task2Suspend = false;
-				windinterface2b_openei.this.frame.dispose();
+				task2Suspend = false;
+				frame.dispose();
 			}
 		});
 		this.frame.setTitle("Windinterface Preferences");
@@ -1499,16 +1502,16 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 		MyComponent() {}
 
 		public void paint(Graphics g) {
-			String path = windinterface2b_openei.myPath + "Images/";
+			String path = myPath + "Images/";
 			DecimalFormat df = new DecimalFormat("#.0");
-			String sysName = windinterface2b_openei.windowSystemName + " " + windinterface2b_openei.windowTitle;
+			String sysName = windowSystemName + " " + windowTitle;
 			g.setFont(new Font("Helvetica", 3, 16));
 			FontMetrics fm = g.getFontMetrics();
 			int width = fm.stringWidth(sysName);
 			g.setFont(new Font("Helvetica", 0, 14));
 			FontMetrics fm2 = g.getFontMetrics();
-			int width2 = fm2.stringWidth("Daily Energy: " + df.format(windinterface2b_openei.dayEnergy) + " (KWatt-Hrs)");
-			int width3 = fm2.stringWidth("Total Energy: " + df.format(windinterface2b_openei.totEnergy) + " (KWatt-Hrs)");
+			int width2 = fm2.stringWidth("Daily Energy: " + df.format(dayEnergy) + " (KWatt-Hrs)");
+			int width3 = fm2.stringWidth("Total Energy: " + df.format(totEnergy) + " (KWatt-Hrs)");
 
 			Graphics2D g2d = (Graphics2D)g;
 
@@ -1541,7 +1544,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			Image img1Off = Toolkit.getDefaultToolkit().getImage(path + "skystreamm-trans.png");
 			Image img1On = Toolkit.getDefaultToolkit().getImage(path + "skystreamm-trans2.png");
 			Image img1 = img1Off;
-			if (windinterface2b_openei.speed > 0.0D) {
+			if (speed > 0.0D) {
 				img1 = img1On;
 			}
 			else {
@@ -1556,7 +1559,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 
 			Image img2 = imgOff;
 
-			double rw = windinterface2b_openei.wind * windinterface2b_openei.windConvert;
+			double rw = wind * windConvert;
 			if (rw == 0.0D) {
 				img2 = imgOff;
 			}
@@ -1573,7 +1576,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 
 			Image img3 = imgOff;
 
-			double rs = windinterface2b_openei.speed * windinterface2b_openei.speedConvert;
+			double rs = speed * speedConvert;
 			if (rs == 0.0D) {
 				img3 = imgOff;
 			}
@@ -1590,7 +1593,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 
 			Image img4 = imgOff;
 
-			double rp = windinterface2b_openei.power * windinterface2b_openei.powerConvert;
+			double rp = power * powerConvert;
 			if (rp == 0.0D) {
 				img4 = imgOff;
 			}
@@ -1614,7 +1617,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			for (int i = 0; i <= 10; i++) {
 				g2d.drawImage(imgVOff, 400, 155 - i * 10, this);
 			}
-			double v = Double.parseDouble(windinterface2b_openei.volts) * windinterface2b_openei.voltsConvert;
+			double v = Double.parseDouble(volts) * voltsConvert;
 			if (v == 0.0D) {
 				img5 = imgVOff;
 			}
@@ -1634,7 +1637,7 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			for (int i = 0; i <= 8; i++) {
 				g2d.drawImage(imgVOff, 240, 155 - i * 10, this);
 			}
-			double de = windinterface2b_openei.dayEnergy * windinterface2b_openei.dayEnergyConvert;
+			double de = dayEnergy * dayEnergyConvert;
 			if (de == 0.0D) {
 				img6 = imgVOff;
 			}
@@ -1662,8 +1665,8 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 
 			g.setFont(new Font("Helvetica", 0, 14));
 			g2d.setPaint(Color.LIGHT_GRAY);
-			g2d.drawString("Daily Energy: " + df.format(windinterface2b_openei.dayEnergy) + " (KWatt-Hrs)", 37, 211);
-			g2d.drawString("Total Energy: " + df.format(windinterface2b_openei.totEnergy) + " (KWatt-Hrs)", 282, 211);
+			g2d.drawString("Daily Energy: " + df.format(dayEnergy) + " (KWatt-Hrs)", 37, 211);
+			g2d.drawString("Total Energy: " + df.format(totEnergy) + " (KWatt-Hrs)", 282, 211);
 			g2d.drawString("Wind Speed", 36, 71);
 			g2d.drawString("(m/s)", 51, 86);
 
@@ -1679,24 +1682,24 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			g2d.drawString("Turbine Speed", 135, 70);
 			g2d.drawString("(RPM)", 150, 85);
 			g2d.drawString("Power (Watts)", 280, 60);
-			g2d.drawString("Daily Energy: " + df.format(windinterface2b_openei.dayEnergy) + " (KWatt-Hrs)", 35, 210);
-			g2d.drawString("Total Energy: " + df.format(windinterface2b_openei.totEnergy) + " (KWatt-Hrs)", 280, 210);
+			g2d.drawString("Daily Energy: " + df.format(dayEnergy) + " (KWatt-Hrs)", 35, 210);
+			g2d.drawString("Total Energy: " + df.format(totEnergy) + " (KWatt-Hrs)", 280, 210);
 			g2d.drawString("Volts", 390, 195);
 			g2d.drawString("KWatt/Hrs", 225, 195);
 
 			setFont(new Font("Helvetica", 0, 14));
 			g2d.setPaint(Color.white);
 
-			String sysDate = windinterface2b_openei.now("hh:mm:ss a MM/dd/yyyy z");
+			String sysDate = now("hh:mm:ss a MM/dd/yyyy z");
 			g2d.drawString(sysDate, 20, 50);
 
-			g2d.drawString("T:" + windinterface2b_openei.ts + " S:" + windinterface2b_openei.ss + " G:" + windinterface2b_openei.gs + " Status", 240, 48);
-			g2d.drawString(windinterface2b_openei.volts, 392, 180);
+			g2d.drawString("T:" + ts + " S:" + ss + " G:" + gs + " Status", 240, 48);
+			g2d.drawString(volts, 392, 180);
 
-			g2d.drawString(df.format(windinterface2b_openei.wind), 55, 180);
-			g2d.drawString(df.format(windinterface2b_openei.speed), 163, 180);
-			g2d.drawString(df.format(windinterface2b_openei.power), 310, 180);
-			g2d.drawString(df.format(windinterface2b_openei.dayEnergy), 230, 180);
+			g2d.drawString(df.format(wind), 55, 180);
+			g2d.drawString(df.format(speed), 163, 180);
+			g2d.drawString(df.format(power), 310, 180);
+			g2d.drawString(df.format(dayEnergy), 230, 180);
 			AffineTransform tx = new AffineTransform();
 
 			double pi = 3.141592653589793D;
@@ -1830,8 +1833,8 @@ public class windinterface2b_openei extends HttpServlet implements ActionListene
 			if ((deltaX >= -10) && (deltaX < 10) && (deltaY >= 20) && (deltaY < 40)) {
 				int reply = JOptionPane.showConfirmDialog(null, "Do You Wish Edit Settings?", "Edit Settings?", 0);
 				if (reply == 0) {
-					windinterface2b_openei.task2Suspend = true;
-					windinterface2b_openei.this.simpleForm();
+					task2Suspend = true;
+					simpleForm();
 				}
 			}
 		}
