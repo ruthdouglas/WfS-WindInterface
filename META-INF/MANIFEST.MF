@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Rsrc-Class-Path: ./ gson-2.2.4.jar mysql-connector-java-5.1.8-bin.jar 
+ servlet-api.jar
+Class-Path: .
+Rsrc-Main-Class: windinterface2b_openei
+Main-Class: org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader
+
