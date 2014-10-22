@@ -59,7 +59,7 @@ public class WindTurbine {
 	int sendToDBOptError = 1;
 	boolean task2Suspend = false;
 	windinterface2_openei parent;
-	//TODO: Convert indata to only need doubles.
+	//TODO: Convert indata to only need doubles?
 	public WindTurbine(windinterface2_openei wioei, String SystemTitle, String SystemName, String SystemID, String SerialNum, String APIKey, double PowerOffset) {
 		parent = wioei;
 		mySysTitle = SystemTitle;
@@ -69,7 +69,7 @@ public class WindTurbine {
 		myApiKey = APIKey;
 		myPowerOffset = PowerOffset;
 		myDailyTotal = readDailyTot();
-		//TODO: Make this loop not needed, convert avgdata to doubles
+		//TODO: Make this loop not needed, convert avgdata to doubles?
 		for (int j = 0; j < 20; j++) {
 			for (int k = 0; k < 40; k++) {
 				avgData[j][k] = "0";
@@ -78,7 +78,7 @@ public class WindTurbine {
 		System.out.println("Loaded Wind Turbine: " + SystemTitle);
 	}
 	//TODO: Figure out why we need a txt file. csv, and web page...
-	public void doWindInterface() { //per turbine
+	public void doWindInterface() {
 		try {
 			String outFileName = "windturbinecurrent.txt";
 			String outFileName3 = "mostcurrentwindturbine.csv";
@@ -93,9 +93,22 @@ public class WindTurbine {
 			PrintWriter outStream3 = new PrintWriter(outFileWriter3);
 
 			int arraysize = maxAvgCount;
-			String power = "0";String Watts = "0";String RPM = "0";String Wind = "0";String TurbineStatus = "0";String GridStatus = "0";String SystemStatus = "0";String myTime = "0";
-			String cpowerstring = "";String cRPMstring = "";String ctimestring = "";
-			double avgpower = 0.0D;double KWatts = 0.0D;double avgRPM = 0.0D;double avgWind = 0.0D;double dailyTotal = 0.0D;
+			String power = "0";
+			String Watts = "0";
+			String RPM = "0";
+			String Wind = "0";
+			String TurbineStatus = "0";
+			String GridStatus = "0";
+			String SystemStatus = "0";
+			String myTime = "0";
+			String cpowerstring = "";
+			String cRPMstring = "";
+			String ctimestring = "";
+			double avgpower = 0.0D;
+			double KWatts = 0.0D;
+			double avgRPM = 0.0D;
+			double avgWind = 0.0D;
+			double dailyTotal = 0.0D;
 			double[] aa = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
 			int i = 0;
 
@@ -141,24 +154,12 @@ public class WindTurbine {
 				if (((parent.getDBURL().equals("none")) || (sendToDBOptError == -1)) && (!parent.getMySQLURL().equals("none"))) {
 					sendTo30sMysqlDatabase(inData);
 				}
-				System.out.println("************************* Current Readings ************************       |       ******************** 10 min Averages **************************");
+				System.out.println(now("HH:mm dd MM yyyy") + "************************ Current Readings ************************");
 
-				System.out.print("Status[TSG]:" + TurbineStatus + "," + SystemStatus + "," + GridStatus + ", ");
-				System.out.print("power:" + power + ", ");
-				System.out.print("RPM:" + RPM + ", ");
-				System.out.print("Wind:" + Wind + ", ");
-				System.out.format("%s %.2f %s", new Object[] { "Kwatt-Hrs:", Double.valueOf(KWatts), ", " });
+				System.out.println("Status[TSG]:" + TurbineStatus + "," + SystemStatus + "," + GridStatus + ", power:" + power + ", RPM:" + RPM + ", Wind:" + Wind + ", " + String.format("%s %.2f %s", new Object[] { "Kwatt-Hrs:", Double.valueOf(KWatts), ""}));
 
-
-				System.out.print("| ");
-
-
-				System.out.format("%s %.2f %s", new Object[] { "Avg_power:", Double.valueOf(avgpower), ", " });
-
-				System.out.format("%s %.2f %s", new Object[] { "Avg_RPM:", Double.valueOf(avgRPM), ", " });
-				System.out.format("%s %.2f", new Object[] { "Avg_Wind:", Double.valueOf(avgWind) });
-				System.out.print("\r\n");
-
+				System.out.println(now("HH:mm dd MM yyyy") + "************************* 10 min Averages ************************");
+				System.out.println(String.format("%s %.2f %s", new Object[] { "Avg_power:", avgpower, ", " }) + String.format("%s %.2f %s", new Object[] { "Avg_RPM:", avgRPM, ", " }) + String.format("%s %.2f", new Object[] { "Avg_Wind:", avgWind }));
 
 				outStream.println("   *** " + mySysTitle + " Current Readings ***   " + "\n");
 				outStream.println("Last update: " + myTime);
@@ -168,19 +169,19 @@ public class WindTurbine {
 				outStream.println("Turbine Speed: " + RPM + " RPM");
 				outStream.println("Wind Speed:    " + Wind + " m/s" + "," + NumberFormat.getInstance().format(Double.parseDouble(Wind) * 2.2369363D) + "mph");
 				outStream.print("Daily Energy:   ");
-				outStream.format("%s%.2f%s%n", new Object[] { " ", Double.valueOf(dailyTotal), " KWatt-Hrs" });
+				outStream.format("%s%.2f%s%n", new Object[] { " ", dailyTotal, " KWatt-Hrs" });
 				outStream.print("Total Energy:   ");
 				if (d[0].equals("103853")) {
-					outStream.format("%s%.2f%s%n%n", new Object[] { " ", Double.valueOf(KWatts), " KWatt-Hrs (from 8/2/08)" });
+					outStream.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs (from 8/2/08)" });
 				}
 				else {
-					outStream.format("%s%.2f%s%n%n", new Object[] { " ", Double.valueOf(KWatts), " KWatt-Hrs" });
+					outStream.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs" });
 				}
 				outStream.println("            *** 10 min Averages ***   \n");
-				outStream.format("%s %.2f%s%n", new Object[] { "Avg power:     ", Double.valueOf(avgpower), " Watts" });
+				outStream.format("%s %.2f%s%n", new Object[] { "Avg power:     ", avgpower, " Watts" });
 
-				outStream.format("%s %.2f%s%n", new Object[] { "Turbine Speed: ", Double.valueOf(avgRPM), " RPM" });
-				outStream.format("%s %.2f %s %.2f %s %n", new Object[] { "Wind Speed:    ", Double.valueOf(avgWind), " m/s", Double.valueOf(avgWind * 2.2369363D), "mph" });
+				outStream.format("%s %.2f%s%n", new Object[] { "Turbine Speed: ", avgRPM, " RPM" });
+				outStream.format("%s %.2f %s %.2f %s %n", new Object[] { "Wind Speed:    ", avgWind, " m/s", (avgWind * 2.2369363D), "mph" });
 				outStream.println("\n* windspeed is for reference only");
 
 
@@ -225,12 +226,13 @@ public class WindTurbine {
 			}
 		}
 		catch (IOException e) {
-			System.out.println("IOExcepton:");
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
 			e.printStackTrace();
 		}
 	}
 
-	public void runskzcmd() { //per turbine
+	public void runskzcmd() {
 		try {
 			double myTime = 0.0D;
 			double pwrTot = 0.0D;
@@ -271,7 +273,7 @@ public class WindTurbine {
 
 					inData[4] = Double.toString(pwrTot + myPowerOffset);
 
-					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + Double.parseDouble(parent.getGMTOffset()) * 3600.0D) * 1000.0D));
+					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + (parent.getGMTOffset()) * 3600.0D) * 1000.0D));
 
 					inData[3] = date;
 
@@ -364,11 +366,13 @@ public class WindTurbine {
 						connection = DriverManager.getConnection(dbURL, username, password);
 					}
 					catch (ClassNotFoundException e) {
-						System.out.println("Database driver not found.");
+						parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+						System.out.println(now("HH:mm dd MM yyyy") + "Database driver not found.");
 						return;
 					}
 					catch (SQLException e) {
-						System.out.println("Error opening the local db connection: " + e.getMessage());
+						parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+						System.out.println(now("HH:mm dd MM yyyy") + "Error opening the local db connection: " + e.getMessage());
 						return;
 					}
 					try {
@@ -379,7 +383,7 @@ public class WindTurbine {
 						ps.setDouble(3, tenMinAvgData[20]);
 						ps.setDouble(4, tenMinAvgData[4]);
 						ps.setDouble(5, tenMinAvgData[19]);
-						Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + Double.parseDouble(parent.getGMTOffset()) * 3600.0D) * 1000L));
+						Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + (parent.getGMTOffset()) * 3600.0D) * 1000L));
 						ps.setTimestamp(6, sqlTimestamp);
 
 
@@ -387,25 +391,29 @@ public class WindTurbine {
 						ps.executeUpdate();
 					}
 					catch (SQLException e) {
-						System.out.println("Error executing the SQL statement: <br>" + e.getMessage());
+						parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+						System.out.println(now("HH:mm dd MM yyyy") + "Error executing the SQL statement: " + e.getMessage());
 						System.out.println("Error sending to backup MySQL Database (10minAvg)");
 					}
 					try {
 						connection.close();
 					}
 					catch (SQLException e) {
-						System.out.println("Error closing the db connection: " + e.getMessage());
+						parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+						System.out.println(now("HH:mm dd MM yyyy") + "Error closing the db connection: " + e.getMessage());
 					}
 				}
 				averagesReadyToPrint = false;
 			}
 		}
-		catch (Exception err) {
-			err.printStackTrace();
+		catch (Exception e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Unknown error:");
+			e.printStackTrace();
 		}
 	}
 
-	private int sendToOpenEIDataBase(String baseURL, String[] inData) { //per turbine?
+	private int sendToOpenEIDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
 		String[] d = inData;
 		String power = d[13];
@@ -476,16 +484,18 @@ public class WindTurbine {
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			System.out.println("Error executing the  statement: " + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Error executing the  statement: " + e.getMessage());
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			System.out.println("IO exception: " + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "IO exception: " + e.getMessage());
 			e.printStackTrace();
 		}
 		return didWork;
 	}
-	private int sendToLocalDataBase(String baseURL, String[] inData) { //per turbine?
+	private int sendToLocalDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
 		String[] d = inData;
 		String power = d[13];
@@ -558,17 +568,19 @@ public class WindTurbine {
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			System.out.println("Error executing the  statement: " + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Error executing the  statement: " + e.getMessage());
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			System.out.println("IO exception: " + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "IO exception: " + e.getMessage());
 			e.printStackTrace();
 		}
 		return didWork;
 	}
 
-	private int sendTo30sMysqlDatabase(String[] inData) { //per turbine?
+	private int sendTo30sMysqlDatabase(String[] inData) {
 		int error = 1;
 
 		String[] d = inData;
@@ -584,7 +596,8 @@ public class WindTurbine {
 			tempTime = Double.parseDouble(d[2]);
 		}
 		catch (Exception e) {
-			System.out.println("Exception error : " + e);
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Exception error : " + e);
 			tempTime = 0.0D;
 		}
 		Connection connection;
@@ -597,11 +610,13 @@ public class WindTurbine {
 			connection = DriverManager.getConnection(dbURL, username, password);
 		}
 		catch (ClassNotFoundException e) {
-			System.out.println("Database driver not found.");
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Database driver not found.");
 			return -1;
 		}
 		catch (SQLException e) {
-			System.out.println("Local Error opening the db connection: " + 
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Local Error opening the db connection: " + 
 					e.getMessage());
 			return -1;
 		}
@@ -614,21 +629,23 @@ public class WindTurbine {
 			ps.setDouble(3, Double.parseDouble(Wind));
 			ps.setDouble(4, Double.parseDouble(Watts));
 			ps.setDouble(5, Double.parseDouble(RPM));
-			Timestamp sqlTimestamp = new Timestamp((long) ((tempTime + Double.parseDouble(parent.getGMTOffset()) * 3600.0D) * 1000L));
+			Timestamp sqlTimestamp = new Timestamp((long) ((tempTime + (parent.getGMTOffset()) * 3600.0D) * 1000L));
 			ps.setTimestamp(6, sqlTimestamp);
 
 			System.out.println("Trying Backup MySQL Database (30s)...");
 			ps.executeUpdate();
 		}
 		catch (SQLException e) {
-			System.out.println("Error executing the SQL statement: <br>" + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Error executing the SQL statement: " + e.getMessage());
 			error = -1;
 		}
 		try {
 			connection.close();
 		}
 		catch (SQLException e) {
-			System.out.println("Error closing the db connection: " + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "Error closing the db connection: " + e.getMessage());
 		}
 		if (error == 1) {
 			System.out.println("Data was Successfully sent to Backup Mysql Database (30s)");
@@ -636,9 +653,9 @@ public class WindTurbine {
 		return error;
 	}
 
-	private int sendTo10minLocalDatabase() { //per turbine?
+	private int sendTo10minLocalDatabase() {
 		if (parent.getDBURL().equals("none")) {
-			System.out.println("Skipped 10min avg DB send because no DBURL set");
+			System.out.println(now("HH:mm dd MM yyyy") + "Skipped 10min avg DB send because no DBURL set");
 			return -1;
 		}
 		int didWork = 0;
@@ -647,7 +664,7 @@ public class WindTurbine {
 		String Watts = String.valueOf(tenMinAvgData[4]);
 		String RPM = String.valueOf(tenMinAvgData[19]);
 		String Wind = String.valueOf(tenMinAvgData[20]);
-		Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + Double.parseDouble(parent.getGMTOffset()) * 3600.0D) * 1000L));
+		Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + (parent.getGMTOffset()) * 3600.0D) * 1000L));
 		String CurrentTime = sqlTimestamp.toString();
 		try {
 			String keyString = "Day & time,PowerW, TotalKW, RPM, Wind, Volts";
@@ -692,15 +709,17 @@ public class WindTurbine {
 			br.close();
 		}
 		catch (MalformedURLException e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
 		catch (IOException e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
 		return didWork;
 	}
 
-	private double readDailyTot() { //per turbine
+	private double readDailyTot() {
 		double dailyTot = 0.0D;
 		try {
 			String inFileName = "mostcurrentwindturbine.csv";
@@ -720,12 +739,13 @@ public class WindTurbine {
 			inStream.close();
 		}
 		catch (IOException e) {
-			System.out.println("IOExcepton:");
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
 			e.printStackTrace();
 		}
 		return dailyTot;
 	}
-	public String getskzcmd() { //per turbine
+	public String[] getskzcmd() {
 		String[] theData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
 		try {
 			double myTime = 0.0D;
@@ -755,7 +775,7 @@ public class WindTurbine {
 					pwrTot = Double.parseDouble(theData[4]);
 
 					theData[4] = Double.toString(pwrTot + myPowerOffset);
-					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + Double.parseDouble(parent.getGMTOffset()) * 3600.0D) * 1000.0D));
+					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + (parent.getGMTOffset()) * 3600.0D) * 1000.0D));
 
 					theData[3] = date;
 
@@ -769,16 +789,15 @@ public class WindTurbine {
 			}
 			input2.close();
 		}
-		catch (Exception err) {
-			err.printStackTrace();
+		catch (Exception e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			e.printStackTrace();
 		}
-		return Arrays.toString(theData);
+		return theData;
 	}
-	public void timerrun () { //per pi
+	public void timerrun () {
 		if (!task2Suspend) {
-			String s = getskzcmd();
-
-			String[] values = s.split(",");
+			String[] values = getskzcmd();
 			if (!values[0].equals("NullPointer Error")) {
 				values[0] = values[0].replace("[", "");
 				values[(values.length - 1)] = values[(values.length - 1)].replace("]", "");
@@ -795,7 +814,7 @@ public class WindTurbine {
 		}
 		doWindInterface();
 	}
-	public String doPatch() { //per pi
+	public String doPatch() {
 		String result;
 		BufferedReader br = null;
 		try {
@@ -804,9 +823,11 @@ public class WindTurbine {
 			br = new BufferedReader(new InputStreamReader(is));
 		}
 		catch (MalformedURLException e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			System.out.println("Bad URL");
 		}
 		catch (IOException e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			System.out.println("IO Error Get Data: " + e.getMessage());
 		}
 		try {
@@ -819,7 +840,6 @@ public class WindTurbine {
 			String Watts = d[4];
 			String RPM = d[19];
 			String Wind = d[20];
-			//TODO: Convert to print() and println()
 			myString = "************* Current Readings at: " + d[3] + "****************" + String.valueOf('\n');
 			myString = myString + " power: " + power + " Watts\t";
 			myString = myString + " volts: " + volts + "\t";
@@ -831,17 +851,19 @@ public class WindTurbine {
 			result = s;
 		}
 		catch (IOException e) {
-			System.out.println("IO Error : " + e.getMessage());
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "IO Error : " + e.getMessage());
 			return "IO Error";
 		}
-		catch (NullPointerException npe) {
-			System.out.println("NullPointer Error : " + npe.getMessage());
+		catch (NullPointerException e) {
+			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "NullPointer Error : " + e.getMessage());
 			inData[0] = "0";
 			return "NullPointer Error";
 		}
 		return result;
 	}
-	public String now(String dateFormat) { //per pi
+	public String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
 		return sdf.format(cal.getTime());

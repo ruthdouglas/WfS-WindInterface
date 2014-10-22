@@ -1,10 +1,17 @@
 import java.awt.AWTException;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Timer;
+
 import javax.servlet.http.HttpServlet;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -26,7 +33,7 @@ public class windinterface2_openei extends HttpServlet {
 	String myMySQLURL;
 	String myMySQLUser;
 	String myMySQLPass;
-	String myGMT_Offset;
+	Double myGMT_Offset;
 	String myPath = "resources/";
 	String windowSystemName;
 	File settings;
@@ -34,7 +41,11 @@ public class windinterface2_openei extends HttpServlet {
 	WindTimerTask TimerTask;
 	Timer timer;
 	int NumTurbines;
-
+	boolean debug = true;
+	String errorLog;
+	FileWriter errorFileWriter;
+	PrintWriter errorStream;
+	//TODO: Should GMT offset be negative?
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
 	}
@@ -56,22 +67,26 @@ public class windinterface2_openei extends HttpServlet {
 			if (list.item(0).getNodeType() == 1) {
 				Element element = (Element)list.item(0);
 				myDBURL = element.getElementsByTagName("dbURL").item(0).getFirstChild().getNodeValue();
+				if (myDBURL == null | myDBURL == "") { myDBURL = "none"; }
 				myMySQLURL = element.getElementsByTagName("mysqlURL").item(0).getFirstChild().getNodeValue();
+				if (myMySQLURL == null | myMySQLURL == "") { myMySQLURL = "none"; }
 				myMySQLUser = element.getElementsByTagName("mysqlUser").item(0).getFirstChild().getNodeValue();
+				if (myMySQLUser == null | myMySQLUser == "") { myMySQLUser = "none"; }
 				myMySQLPass = element.getElementsByTagName("mysqlPass").item(0).getFirstChild().getNodeValue();
-				myGMT_Offset = element.getElementsByTagName("gmt_offset").item(0).getFirstChild().getNodeValue();
+				if (myMySQLPass == null | myMySQLPass == "") { myMySQLPass = "none"; }
+				myGMT_Offset = Double.parseDouble(element.getElementsByTagName("gmt_offset").item(0).getFirstChild().getNodeValue());
 			}
+			errorLog = "errorlog.txt";
+			errorFileWriter = new FileWriter(errorLog,true);
+			errorStream = new PrintWriter(errorFileWriter);
 		}
 		catch (Exception e) {
+			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
-		//TODO: Convert to println()
 		windowSystemName = "Open EI Wind Interface";
 		System.out.println("windinterface version openei 2.1 using:");
-		System.out.print("dbURL: " + myDBURL);
-		System.out.print(", mySQLURL: " + myMySQLURL);
-		System.out.print(", mySQLUser: " + myMySQLUser);
-		System.out.println(", GMT+ " + myGMT_Offset);
+		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT+ " + myGMT_Offset);
 		System.out.println("Initialization complete.");
 		System.out.println("Loading Turbines.....");
 		loadTurbines();
@@ -106,7 +121,13 @@ public class windinterface2_openei extends HttpServlet {
 				timer.schedule(TimerTask, 0L, 30000L); //Run for 30s with 0s delay....
 			} //end turbine loop
 		}
+		catch (NullPointerException e) {
+			System.out.println("Error reading from config file. Check turbine count?");
+			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			e.printStackTrace();
+		}
 		catch (Exception e) {
+			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
 		System.out.println("Loaded Turbines.");
@@ -120,7 +141,7 @@ public class windinterface2_openei extends HttpServlet {
 	public String getPath () {
 		return myPath;
 	}
-	public String getGMTOffset () {
+	public Double getGMTOffset () {
 		return myGMT_Offset;
 	}
 	public String getMySQLUser () {
@@ -128,5 +149,18 @@ public class windinterface2_openei extends HttpServlet {
 	}
 	protected String getMySQLPass () {
 		return myMySQLPass;
+	}
+	public boolean isDebug() {
+		return debug;
+	}
+	public void errorLog(String s) {
+		errorStream = new PrintWriter(errorFileWriter);
+		errorStream.append(s);
+		errorStream.close();
+	}
+	public String now(String dateFormat) {
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+		return sdf.format(cal.getTime());
 	}
 }
