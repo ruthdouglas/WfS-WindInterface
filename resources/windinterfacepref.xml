@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Sample config:
 Please note, since names can not start with numbers, letter A-Z must
 be used to name turbines (CAPS!)
 Modify all needed fields, and Remove B, or add C as needed.
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><turbine>
+<turbine>
 	<setup>
 		<num_turbines>2</num_turbines>
 	</setup>
@@ -31,7 +32,7 @@ Modify all needed fields, and Remove B, or add C as needed.
 	</system>
 </turbine>
 End Sample-->
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><turbine>
+<turbine>
 	<setup>
 		<num_turbines>2</num_turbines>
 	</setup>

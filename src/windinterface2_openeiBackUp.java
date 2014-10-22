@@ -16,7 +16,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 @SuppressWarnings("serial")
-public class windinterface2_openei extends HttpServlet {
+public class windinterface2_openeiBackUp extends HttpServlet {
 	//Conversion constants.....
 	final double windConvert = 7.2D;
 	final double speedConvert = 1.125D;
@@ -46,14 +46,13 @@ public class windinterface2_openei extends HttpServlet {
 	PrintWriter errorStream;
 	//TODO: Should GMT offset be negative?
 	public static void main(String[] args) throws AWTException, IOException {
-		new windinterface2_openei(args);
+		new windinterface2_openeiBackUp(args);
 	}
-	public windinterface2_openei(final String[] args) {
+	public windinterface2_openeiBackUp(final String[] args) {
 		System.out.println("Initialing....");
 		try {
 			settings = new File(myPath + "windinterfacepref.xml");
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setIgnoringComments(true);
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document doc = builder.parse(settings);
 			doc.getDocumentElement().normalize();
@@ -108,12 +107,10 @@ public class windinterface2_openei extends HttpServlet {
 					Element element = (Element)list.item(0);
 					SYSTitle = element.getElementsByTagName("sys_title").item(0).getFirstChild().getNodeValue();
 					SYSID = element.getElementsByTagName("sys_id").item(0).getFirstChild().getNodeValue().replaceAll("\\W", "");
-					SerialNum = element.getElementsByTagName("serial_num").item(0).getFirstChild().getNodeValue().replace("-", "").substring(2);
+					SerialNum = element.getElementsByTagName("serial_num").item(0).getFirstChild().getNodeValue();
 					SYSName = element.getElementsByTagName("sys_name").item(0).getFirstChild().getNodeValue();
 					APIKey = element.getElementsByTagName("api_key").item(0).getFirstChild().getNodeValue();
-					String PWRtemp = element.getElementsByTagName("pwr_offset").item(0).getFirstChild().getNodeValue();
-					if (PWRtemp == null | PWRtemp == "") { PWROffset = 0D; }
-					else{ PWROffset = Double.parseDouble(PWRtemp); }
+					PWROffset = Double.parseDouble(element.getElementsByTagName("pwr_offset").item(0).getFirstChild().getNodeValue());
 				}
 				System.out.println(SYSTitle + ", " + SYSName + ", " + SYSID + ", " + SerialNum + ", " + APIKey + ", " + PWROffset);
 				Turbines[n] = new WindTurbine(this, SYSTitle, SYSName, SYSID, SerialNum, APIKey, PWROffset);
@@ -124,7 +121,7 @@ public class windinterface2_openei extends HttpServlet {
 			} //end turbine loop
 		}
 		catch (NullPointerException e) {
-			System.out.println("Error reading from config file. Check turbine count? Check all field have values?");
+			System.out.println("Error reading from config file. Check turbine count?");
 			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
@@ -156,11 +153,9 @@ public class windinterface2_openei extends HttpServlet {
 		return debug;
 	}
 	public void errorLog(String s) {
-		if (s != null && s != "") {
-			errorStream = new PrintWriter(errorFileWriter);
-			errorStream.append(s);
-			errorStream.close();
-		}
+		errorStream = new PrintWriter(errorFileWriter);
+		errorStream.append(s);
+		errorStream.close();
 	}
 	public String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
