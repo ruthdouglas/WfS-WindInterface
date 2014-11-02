@@ -57,8 +57,7 @@ End Sample-->
 		<mysqlURL>none</mysqlURL>
 		<mysqlUser>none</mysqlUser>
 		<mysqlPass>none</mysqlPass>
-		<gmt_offset>7.0</gmt_offset>
-	</system>
+		<gmt_offset>7.0</gmt_offset></system>
 </turbine>
 <!--
 	V. 3

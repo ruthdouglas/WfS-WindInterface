@@ -24,26 +24,27 @@ import java.util.Map;
 import com.google.gson.Gson;
 
 
+/**
+ * @author Ian Mason
+ * Class created to hold properties of a Winnd Turbine. This class holds all things specific to an individual turbine, and
+ * methods to help perform tasks specific to that turbine.
+ */
 public class WindTurbine {
-	//Conversion constants.....
-	final double windConvert = 7.2D;
-	final double speedConvert = 1.125D;
-	final double powerConvert = 0.12D;
-	final double voltsConvert = 0.03571428571428571D;
-	final double dayEnergyConvert = 0.2D;
-	//End constants....
 	int avgCount = 0; //Used when printing avgs
 	int maxAvgCount = 20;  //Used when printing avgs
 	boolean averagesReadyToPrint = false;  //Used when printing avgs
 	double[][] avgData = new double[20][40];
-	double[] tenMinAvgData = { 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D };
+	double[] tenMinAvgData = new double[38];
 	double myDailyTotal = 0.0D;
+	//Vars from config...
 	String mySysTitle;
 	String mySysID;
 	String mySerialNum;
 	String mySysName;
 	String myApiKey;
 	double myPowerOffset;
+	//End Vars from config...
+	//Vars from turbine...
 	double power;
 	double wind;
 	double speed;
@@ -53,10 +54,19 @@ public class WindTurbine {
 	double dayEnergy;
 	double totEnergy;
 	String volts;
+	//End Vards from turbine...
 	int sendToDBError = 1;
 	int sendToDBOptError = 1;
-	boolean task2Suspend = false;
-	windinterface2_openei parent;
+	windinterface2_openei parent; //So you can pull needed references from the main class
+	/**
+	 * @param wioei A reference to the parent that created it, a Wind Interface instance, to use for accessing parameters
+	 * @param SystemTitle The actual name of the turbine
+	 * @param SystemName Short name for the turbine, AKA password
+	 * @param SystemID The zigBee Id for the turbine
+	 * @param SerialNum The turbine serial number
+	 * @param APIKey The APIKey for OpenEI
+	 * @param PowerOffset The Power offset if there was a new inverter installed, otherwise 0
+	 */
 	public WindTurbine(windinterface2_openei wioei, String SystemTitle, String SystemName, String SystemID, String SerialNum, String APIKey, double PowerOffset) {
 		parent = wioei;
 		mySysTitle = SystemTitle;
@@ -68,25 +78,27 @@ public class WindTurbine {
 		myDailyTotal = readDailyTot();
 		System.out.println("Loaded Wind Turbine: " + SystemTitle);
 	}
-	private int sendToOpenEIDataBase(String baseURL, String[] inData) {
+	/**
+	 * @param inData Data to be sent to database.
+	 * @return Returns an int corresponding to if the data was sent successfully. 1 for success, 0 for connection error, -1 for OpenEI error.
+	 */
+	private int sendToOpenEIDataBase(String[] inData) {
 		int didWork = 0;
-		String[] d = inData;
-		String power = d[13];
-		String volts = d[6];
-		String Watts = d[4];
-		String RPM = d[19];
-		String Wind = d[20];
-		String TurbineStatus = d[33];
-		String GridStatus = d[34];
-		String SystemStatus = d[35];
-		String[] myTime = d[3].split(" ");
-
+		String power = inData[13];
+		String volts = inData[6];
+		String Watts = inData[4];
+		String RPM = inData[19];
+		String Wind = inData[20];
+		//double GMTTime = Double.parseDouble(inData[2]);
+		String TurbineStatus = inData[33];
+		String GridStatus = inData[34];
+		String SystemStatus = inData[35];
+		
+		String[] myTime = inData[3].split(" ");
 		String[] myDate = myTime[0].split("/");
-
 		String[] myTimeHMS = myTime[1].split(":");
 
-		String dailyTotal = d[5];
-		String GMT = d[2];
+		String dailyTotal = inData[5];
 		int year = Integer.parseInt(myDate[2]);
 		int month = Integer.parseInt(myDate[0]);
 		int day = Integer.parseInt(myDate[1]);
@@ -96,12 +108,12 @@ public class WindTurbine {
 
 		String tempString = year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
 		try {
-			String[] keys = {"turbineID","GMTtime","Day&time","PowerW","DailyKW","TotalKW","RPM","Wind","Volts","Tstat","Sstat","Gstat"};
-			
+			String[] keys = {"turbineID","Day&time","PowerW","DailyKW","TotalKW","RPM","Wind","Volts","Tstat","Sstat","Gstat"};
+
 			Map<String, String> dataMap = new HashMap<String, String>();
 
-			String[] data = {mySerialNum,GMT,tempString,power,dailyTotal,Watts,RPM,Wind,volts,TurbineStatus,SystemStatus,GridStatus};
-
+			String[] data = {mySerialNum,tempString,power,dailyTotal,Watts,RPM,Wind,volts,TurbineStatus,SystemStatus,GridStatus};
+			if (parent.getDebug()) System.out.println("OpenEI Data: " + Arrays.toString(data));
 			int i = 0;
 			while (i < keys.length) {
 				dataMap.put(keys[i], data[i]);
@@ -110,8 +122,8 @@ public class WindTurbine {
 			Gson gson = new Gson();
 			String dataJsonString = gson.toJson(dataMap);
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
-			String urlString = baseURL + "?api_key=" + myApiKey + "&" + "json_data=" + jsonString;
-
+			String urlString = "http://en.openei.org/services/api/2/wfs/w/" + mySerialNum + "?api_key=" + myApiKey + "&" + "json_data=" + jsonString;
+			if (parent.getDebug()) System.out.println("OpenEI URL: " + urlString);
 			URL url = new URL(urlString);
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -123,13 +135,19 @@ public class WindTurbine {
 					check = s;
 				}
 			}
-			if (check.substring(0, 6).equals("{\"Item")) {
-				didWork = 1;
-				System.out.println("Data was Successfully sent to OpenEI");
+			if (check != null) {
+				if (parent.getDebug()) System.out.println("OpenEI return: " + check);
+				if (check.substring(0, 6).equals("{\"Item")) {
+					didWork = 1;
+					System.out.println("Data was Successfully sent to OpenEI");
+				}
+				else {
+					didWork = -1;
+					System.out.println("OpenEI Error! " + s);
+				}
 			}
 			else {
-				didWork = -1;
-				System.out.println("OpenEI Error! " + s);
+				System.out.println("Unable to connect to OpenEI!" + s );
 			}
 			br.close();
 		}
@@ -145,25 +163,29 @@ public class WindTurbine {
 		}
 		return didWork;
 	}
+	/**
+	 * @param baseURL Local database URL.
+	 * @param inData Data to be sent to database.
+	 * @return  Returns an int corresponding to if the data was sent successfully. 1 for success, 0 for connection error, -1 for OpenEI error.
+	 */
 	private int sendToLocalDataBase(String baseURL, String[] inData) {
 		int didWork = 0;
-		String[] d = inData;
-		String power = d[13];
-		String volts = d[6];
-		String Watts = d[4];
-		String RPM = d[19];
-		String Wind = d[20];
-		String TurbineStatus = d[33];
-		String GridStatus = d[34];
-		String SystemStatus = d[35];
-		String[] myTime = d[3].split(" ");
-
+		
+		String power = inData[13];
+		String volts = inData[6];
+		String Watts = inData[4];
+		String RPM = inData[19];
+		String Wind = inData[20];
+		String TurbineStatus = inData[33];
+		String GridStatus = inData[34];
+		String SystemStatus = inData[35];
+		
+		String[] myTime = inData[3].split(" ");
 		String[] myDate = myTime[0].split("/");
-
 		String[] myTimeHMS = myTime[1].split(":");
 
-		String dailyTotal = d[5];
-		String GMT = d[2];
+		String dailyTotal = inData[5];
+		String GMT = inData[2];
 
 		int year = Integer.parseInt(myDate[2]);
 		int month = Integer.parseInt(myDate[0]);
@@ -177,7 +199,7 @@ public class WindTurbine {
 			String[] keys = {"turbineID","GMTtime","Day&time","PowerW","DailyKW","TotalKW","RPM","Wind","Volts","Tstat","Sstat","Gstat"};
 
 			String[] data = {mySerialNum,GMT,tempString,power,dailyTotal,Watts,RPM,Wind,volts,TurbineStatus,SystemStatus,GridStatus};
-
+			if (parent.getDebug()) System.out.println("LocalDB Data: " + Arrays.toString(data));
 			Map<String, String> dataMap = new HashMap<String, String>();
 
 			int i = 0;
@@ -190,7 +212,7 @@ public class WindTurbine {
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
 			String urlString = baseURL + "?systemname=" + mySysName + "&" + "json_data=" + jsonString;
 
-
+			if (parent.getDebug()) System.out.println("LocalDB URL: " + urlString);
 			URL url = new URL(urlString);
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
@@ -201,6 +223,7 @@ public class WindTurbine {
 					check = s;
 				}
 			}
+			if (parent.getDebug()) System.out.println("LocalDB return: " + check);
 			if (check.equals("SUCCESS")) {
 				didWork = 1;
 				System.out.println("Data was Successfully sent to Local 30s Database (HTTP)");
@@ -225,6 +248,11 @@ public class WindTurbine {
 		return didWork;
 	}
 
+	//TODO: Add debug code
+	/**
+	 * @param inData Data to be sent to database.
+	 * @return  Returns an int corresponding to if the data was sent successfully. 1 for success, 0 for connection error, -1 for OpenEI error.
+	 */
 	private int sendTo30sMysqlDatabase(String[] inData) {
 		int error = 1;
 
@@ -295,6 +323,10 @@ public class WindTurbine {
 		return error;
 	}
 
+	//TODO: Add debug code
+	/**
+	 * @return  Returns an int corresponding to if the data was sent successfully. 1 for success, 0 for connection error, -1 for OpenEI error.
+	 */
 	private int sendTo10minLocalDatabase() {
 		if (parent.getDBURL().equals("none")) {
 			System.out.println(now("HH:mm dd MM yyyy") + "Skipped 10min avg DB send because no DBURL set");
@@ -357,6 +389,10 @@ public class WindTurbine {
 		return didWork;
 	}
 
+	//TODO: Add debug code
+	/**
+	 * @return
+	 */
 	private double readDailyTot() {
 		double dailyTot = 0.0D;
 		try {
@@ -383,8 +419,12 @@ public class WindTurbine {
 		}
 		return dailyTot;
 	}
+	/**
+	 * @return Array of Strings containing all turbine data.
+	 */
 	public String[] getskzcmd() {
-		String[] theData = { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };
+		String[] theData = new String[40];
+		Arrays.fill(theData, "0");
 		try {
 			double myTime = 0.0D;
 			double pwrTot = 0.0D;
@@ -394,9 +434,9 @@ public class WindTurbine {
 				execPath = "./" + parent.getPath() + "s2zcmd -z +" + mySysID + " dstat 1 0";
 			}
 			Process p = Runtime.getRuntime().exec(execPath);
-			BufferedReader input2 = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
-			int i = 0;int numberOfChar = 0;int j = 0;int k = 0;
+			int numberOfChar = 0;
 			String dataOutFileName = "ss" + now("yyyy_MM") + ".csv";
 			String dataOutFileName3 = "tenminaverage_ss" + now("yyyy_MM") + ".csv";
 			String dataOutFileName2 = "tenminaveragewindturbine.csv";
@@ -404,9 +444,11 @@ public class WindTurbine {
 			FileWriter outFileWriterTest = new FileWriter(dataOutFileName, true);
 
 			PrintWriter outStreamTest = new PrintWriter(outFileWriterTest);
-			while ((line = input2.readLine()) != null) {
+			while ((line = input.readLine()) != null) {
+				if (parent.getDebug()) System.out.println("From skzcmd: " + line);
 				String[] d = line.split(",");
 				if (d.length >= 2) {
+					if (parent.getDebug()) System.out.println("Raw data: " + Arrays.toString(d));
 					theData[0] = d[0].replaceAll("\\D", "");
 					String[] tempd1 = d[1].split(" ");
 					theData[1] = tempd1[0].replaceAll("\\D", "");
@@ -435,6 +477,7 @@ public class WindTurbine {
 					theData[5] = Double.toString(readDailyTot());
 
 					File dataFile = new File(dataOutFileName);
+					if (parent.getDebug()) System.out.println("Formatted data: " + Arrays.toString(theData));
 					if (dataFile.length() > 0L) {
 						outStreamTest.println(Arrays.toString(theData));
 					}
@@ -444,22 +487,18 @@ public class WindTurbine {
 					}
 				}
 			}
-			input2.close();
+			input.close();
 			outStreamTest.close();
 			if ((avgCount < maxAvgCount) && (numberOfChar >= 39)) {
-				for (i = 0; i < numberOfChar; i++) {
-					if(i != 3) { avgData[avgCount][i] = Double.parseDouble(theData[i]); }
+				for (int i = 0; i < numberOfChar; i++) {
+					if(i != 3 && i != 30 && i != 31) { avgData[avgCount][i] = Double.parseDouble(theData[i]); } //ignore the non-numerical values, they don't matter
 					if (i == numberOfChar - 1) {
 						avgCount += 1;
 					}
-					if (avgCount >= maxAvgCount) {
+					if (avgCount >= maxAvgCount) {  //When data has been read 20 times (10 min)
 						avgCount = 0;
-						for (j = 0; j < maxAvgCount; j++) {
-							for (k = 0; k < numberOfChar - 1; k++) {
-								if (k == 3) {
-									tenMinAvgData[3] = 0.0D;
-									k = 4;
-								}
+						for (int j = 0; j < maxAvgCount; j++) {
+							for (int k = 0; k < numberOfChar - 1; k++) {
 								double tempDouble = 0.0D;
 								try {
 									tempDouble = avgData[j][k];
@@ -473,10 +512,10 @@ public class WindTurbine {
 								}
 							}
 						}
-						for (j = 0; j < numberOfChar - 1; j++) {
+						for (int j = 0; j < numberOfChar - 1; j++) {
 							tenMinAvgData[j] /= maxAvgCount;
 						}
-						tenMinAvgData[2] = Double.parseDouble(theData[2]);
+						tenMinAvgData[2] = Double.parseDouble(theData[2]); //grab current epoch time
 						averagesReadyToPrint = true;
 					}
 				}
@@ -561,15 +600,14 @@ public class WindTurbine {
 		return theData;
 	}
 	//TODO: Figure out why we need a txt file. csv, and web page...
+	/**
+	 * 
+	 */
 	public void timerrun () {
 		int arraysize = maxAvgCount;
 		//String power = "0";
-		String Watts = "0";
-		String RPM = "0";
-		//String Wind = "0";
-		//String TurbineStatus = "0";
-		//String GridStatus = "0";
-		//String SystemStatus = "0";
+		double Watts = 0.0d;
+		double RPM = 0.0d;
 		String myTime = "0";
 		String cpowerstring = "";
 		String cRPMstring = "";
@@ -580,10 +618,8 @@ public class WindTurbine {
 		double avgWind = 0.0D;
 		double dailyTotal = 0.0D;
 		int i = 0;
-		
-		String[] values;
-		if (!task2Suspend) {
-			values = getskzcmd();
+
+		String[] values = getskzcmd();
 			if (!values[0].equals("NullPointer Error")) {
 				values[0] = values[0].replace("[", "");
 				values[(values.length - 1)] = values[(values.length - 1)].replace("]", "");
@@ -623,15 +659,15 @@ public class WindTurbine {
 				if (numberOfd >= 39) {
 					power = Double.parseDouble(values[13]);
 					volts = values[6];
-					Watts = values[4];
-					RPM = values[19];
+					Watts = Double.parseDouble(values[4]);
+					RPM = Double.parseDouble(values[19]);
 					wind = Double.parseDouble(values[20]);
 					ts = values[33];
 					gs = values[34];
 					ss = values[35];
 					myTime = values[3];
 					dailyTotal = Double.parseDouble(values[5]) / 1000.0D;
-					KWatts = Double.parseDouble(Watts) / 1000.0D;
+					KWatts = Watts / 1000.0D;
 				}
 				for (i = 0; i <= arraysize - 1; i++) {
 					cpowerstring = cpowerstring + "," + avgData[i][13];
@@ -639,11 +675,7 @@ public class WindTurbine {
 					ctimestring = ctimestring + "," + Double.toString(i);
 				}
 				if (!values[0].equals("0")) {
-					String openeiTurbineID = mySerialNum;
-
-
-					String openEIurl = "http://en.openei.org/services/api/2/wfs/w/" + openeiTurbineID;
-					sendToDBError = sendToOpenEIDataBase(openEIurl, values);
+					sendToDBError = sendToOpenEIDataBase(values);
 					if (!parent.getDBURL().equals("none")) {
 						sendToDBOptError = sendToLocalDataBase(parent.getDBURL(), values);
 					}
@@ -726,8 +758,11 @@ public class WindTurbine {
 				System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
 				e.printStackTrace();
 			}
-		}
 	}
+	/**
+	 * @param dateFormat
+	 * @return
+	 */
 	public String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);

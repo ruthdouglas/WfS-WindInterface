@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Timer;
 
-import javax.servlet.http.HttpServlet;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -15,8 +14,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-@SuppressWarnings("serial")
-public class windinterface2_openei extends HttpServlet {
+/**
+ * @author Ian Mason
+ *
+ */
+
+public class windinterface2_openei {
 	//Conversion constants.....
 	final double windConvert = 7.2D;
 	final double speedConvert = 1.125D;
@@ -25,8 +28,8 @@ public class windinterface2_openei extends HttpServlet {
 	final double dayEnergyConvert = 0.2D;
 	//End constants....
 
-	int avgCount = 0; //Used when printing avgs
-	int maxAvgCount = 20;  //Used when printing avgs
+	int avgCount = 0; //Used when printing avgs, stores # of avgs collected
+	int maxAvgCount = 20;  //Used when printing avgs (Total possible avgs, 10min * 2 points/min)
 	boolean averagesReadyToPrint = false;  //Used when printing avgs
 	String myDBURL;
 	String myMySQLURL;
@@ -40,7 +43,7 @@ public class windinterface2_openei extends HttpServlet {
 	WindTimerTask TimerTask;
 	Timer timer;
 	int NumTurbines;
-	boolean debug = true;
+	boolean debug = false;
 	String errorLog;
 	FileWriter errorFileWriter;
 	PrintWriter errorStream;
@@ -48,6 +51,9 @@ public class windinterface2_openei extends HttpServlet {
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
 	}
+	/**
+	 * @param args
+	 */
 	public windinterface2_openei(final String[] args) {
 		System.out.println("Initialing....");
 		try {
@@ -61,7 +67,7 @@ public class windinterface2_openei extends HttpServlet {
 			if (list.item(0).getNodeType() == 1) {
 				Element element = (Element)list.item(0);
 				NumTurbines = Integer.parseInt(element.getElementsByTagName("num_turbines").item(0).getFirstChild().getNodeValue());
-				Turbines = new WindTurbine[NumTurbines];
+				Turbines = new WindTurbine[NumTurbines];					
 			}
 			list = doc.getElementsByTagName("system");
 			if (list.item(0).getNodeType() == 1) {
@@ -75,10 +81,20 @@ public class windinterface2_openei extends HttpServlet {
 				myMySQLPass = element.getElementsByTagName("mysqlPass").item(0).getFirstChild().getNodeValue();
 				if (myMySQLPass == null | myMySQLPass == "") { myMySQLPass = "none"; }
 				myGMT_Offset = Double.parseDouble(element.getElementsByTagName("gmt_offset").item(0).getFirstChild().getNodeValue());
+				NodeList debugNode = element.getElementsByTagName("debug");
+				if (!(debugNode.item(0) == null)) {
+					debug = Boolean.parseBoolean(debugNode.item(0).getFirstChild().getNodeValue());
+					if (debug) System.out.println("Debug Mode: ENABLED");
+				}	
 			}
 			errorLog = "errorlog.txt";
 			errorFileWriter = new FileWriter(errorLog,true);
 			errorStream = new PrintWriter(errorFileWriter);
+		}
+		catch (NullPointerException e) {
+			System.out.println("Error reading from config file. Error in system or setup section.");
+			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			e.printStackTrace();
 		}
 		catch (Exception e) {
 			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
@@ -92,6 +108,9 @@ public class windinterface2_openei extends HttpServlet {
 		loadTurbines();
 	}
 
+	/**
+	 * 
+	 */
 	void loadTurbines() {
 		try {
 			File file = new File(myPath + "windinterfacepref.xml");
@@ -134,34 +153,68 @@ public class windinterface2_openei extends HttpServlet {
 		}
 		System.out.println("Loaded Turbines.");
 	}
+	/**
+	 * @return
+	 */
 	public String getDBURL () {
 		return myDBURL;
 	}
+	/**
+	 * @return
+	 */
 	public String getMySQLURL () {
 		return myMySQLURL;
 	}
+	/**
+	 * @return
+	 */
 	public String getPath () {
 		return myPath;
 	}
+	/**
+	 * @return
+	 */
 	public Double getGMTOffset () {
 		return myGMT_Offset;
 	}
+	/**
+	 * @return
+	 */
 	public String getMySQLUser () {
 		return myMySQLUser;
 	}
+	/**
+	 * @return
+	 */
 	protected String getMySQLPass () {
 		return myMySQLPass;
 	}
+	/**
+	 * @return
+	 */
 	public boolean isDebug() {
 		return debug;
 	}
+	/**
+	 * @param s
+	 */
 	public void errorLog(String s) {
 		if (s != null && s != "") {
 			errorStream = new PrintWriter(errorFileWriter);
-			errorStream.append(s);
+			errorStream.append("\n" + s);
 			errorStream.close();
 		}
 	}
+	/**
+	 * @return
+	 */
+	public boolean getDebug() {
+		return debug;
+	}
+	/**
+	 * @param dateFormat
+	 * @return
+	 */
 	public String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
