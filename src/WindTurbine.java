@@ -34,7 +34,7 @@ public class WindTurbine {
 	int maxAvgCount = 20;  //Used when printing avgs
 	boolean averagesReadyToPrint = false;  //Used when printing avgs
 	double[][] avgData = new double[20][40];
-	double[] tenMinAvgData = new double[38];
+	double[] tenMinAvgData = new double[40];
 	double myDailyTotal = 0.0D;
 	//Vars from config...
 	String mySysTitle;
@@ -152,12 +152,12 @@ public class WindTurbine {
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("URL ERROR (OpenEI): " +  e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Error executing the  statement: " + e.getMessage());
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("IOException (OpenEI): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "IO exception: " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -230,18 +230,18 @@ public class WindTurbine {
 			}
 			else {
 				didWork = -1;
-				parent.errorLog(now("HH:mm dd MM yyyy") + "Error sending to Local 30s Database (HTTP) " + s);
+				parent.errorLog("Error sending to Local 30s Database (HTTP) " + s);
 				System.out.println("Error sending to Local 30s Database (HTTP) " + s);
 			}
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("URL Error (LocalDB): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Error executing the  statement: " + e.getMessage());
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("IOException (localDB): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "IO exception: " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -267,7 +267,7 @@ public class WindTurbine {
 			tempTime = Double.parseDouble(inData[2]);
 		}
 		catch (Exception e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("Unknown error (30secSQL): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Exception error : " + e);
 			tempTime = 0.0D;
 		}
@@ -281,12 +281,12 @@ public class WindTurbine {
 			connection = DriverManager.getConnection(dbURL, username, password);
 		}
 		catch (ClassNotFoundException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("Class Error (30sSQL): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Database driver not found.");
 			return -1;
 		}
 		catch (SQLException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("SQL Error on open (30sSQL): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Local Error opening the db connection: " + e.getMessage());
 			return -1;
 		}
@@ -306,7 +306,7 @@ public class WindTurbine {
 			ps.executeUpdate();
 		}
 		catch (SQLException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("SQL Error on send (30sSQL): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Error executing the SQL statement: " + e.getMessage());
 			error = -1;
 		}
@@ -314,7 +314,7 @@ public class WindTurbine {
 			connection.close();
 		}
 		catch (SQLException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("SQL Error on close(30sSQL): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Error closing the db connection: " + e.getMessage());
 		}
 		if (error == 1) {
@@ -373,17 +373,17 @@ public class WindTurbine {
 			}
 			else {
 				didWork = -1;
-				parent.errorLog(now("HH:mm dd MM yyyy") + "Error sending to Local 10minAvg Database (HTTP) " + s);
+				parent.errorLog("Error sending to Local 10minAvg Database (HTTP) " + s);
 				System.out.println("Error sending to Local 10minAvg Database (HTTP) " + s);
 			}
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("URL Error (10mDB): "  + e.getMessage());
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("IO Error (10mSQL): "  + e.getMessage());
 			e.printStackTrace();
 		}
 		return didWork;
@@ -413,7 +413,7 @@ public class WindTurbine {
 			inStream.close();
 		}
 		catch (IOException e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("IO Error (ReadDailyTot): " + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
 			e.printStackTrace();
 		}
@@ -428,6 +428,7 @@ public class WindTurbine {
 		try {
 			double myTime = 0.0D;
 			double pwrTot = 0.0D;
+			int numberOfChar = 0;
 			String OS = System.getProperty("os.name");
 			String execPath = parent.getPath() + "skzcmd.exe -z +" + mySysID + " dstat 1 0";
 			if (!OS.startsWith("Windows")) {
@@ -436,14 +437,9 @@ public class WindTurbine {
 			Process p = Runtime.getRuntime().exec(execPath);
 			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
-			int numberOfChar = 0;
-			String dataOutFileName = "ss" + now("yyyy_MM") + ".csv";
-			String dataOutFileName3 = "tenminaverage_ss" + now("yyyy_MM") + ".csv";
-			String dataOutFileName2 = "tenminaveragewindturbine.csv";
+			
 
-			FileWriter outFileWriterTest = new FileWriter(dataOutFileName, true);
-
-			PrintWriter outStreamTest = new PrintWriter(outFileWriterTest);
+			PrintWriter MonthlyData = new PrintWriter(new FileWriter("ss" + now("yyyy_MM") + ".csv", true));
 			while ((line = input.readLine()) != null) {
 				if (parent.getDebug()) System.out.println("From skzcmd: " + line);
 				String[] d = line.split(",");
@@ -454,8 +450,8 @@ public class WindTurbine {
 					theData[1] = tempd1[0].replaceAll("\\D", "");
 					theData[2] = tempd1[1];
 					theData[4] = d[2];
-					int ii = 0;
-					for (ii = 3; ii < d.length - 1; ii++) {
+
+					for (int ii = 3; ii < d.length - 1; ii++) {
 						theData[(ii + 3)] = d[ii];
 					}
 					numberOfChar = Array.getLength(theData);
@@ -476,19 +472,20 @@ public class WindTurbine {
 					myDailyTotal += Double.parseDouble(theData[13]) * 0.0083333D;
 					theData[5] = Double.toString(readDailyTot());
 
-					File dataFile = new File(dataOutFileName);
+					File dataFile = new File("ss" + now("yyyy_MM") + ".csv");
 					if (parent.getDebug()) System.out.println("Formatted data: " + Arrays.toString(theData));
 					if (dataFile.length() > 0L) {
-						outStreamTest.println(Arrays.toString(theData));
+						MonthlyData.println(Arrays.toString(theData));
 					}
 					else {
-						outStreamTest.println("Turbine ID,SW Version,Time(sec),Time(MDY:HMS),watt-hours,DailyTot,Voltage In,Voltage DC Bus,Voltage L1,Voltage L2,voltage rise,min v from rpm,Current out,Power out,Power reg,Power max,Line Frequency,Inverter Frequency,Line Resistance,RPM,Windspeed (ref meters/sec),TargetTSR,Ramp RPM,Boost pulswidth,Max BPW,current amplitude, T1,T2,T3,Event count,Last event code,Event status,Event value,Turbine status,Grid status,System status,Slave Status,Access Status,Timer,");
-						outStreamTest.println(Arrays.toString(theData));
+						MonthlyData.println("Turbine ID,SW Version,Time(sec),Time(MDY:HMS),watt-hours,DailyTot,Voltage In,Voltage DC Bus,Voltage L1,Voltage L2,voltage rise,min v from rpm,Current out,Power out,Power reg,Power max,Line Frequency,Inverter Frequency,Line Resistance,RPM,Windspeed (ref meters/sec),TargetTSR,Ramp RPM,Boost pulswidth,Max BPW,current amplitude, T1,T2,T3,Event count,Last event code,Event status,Event value,Turbine status,Grid status,System status,Slave Status,Access Status,Timer,");
+						MonthlyData.println(Arrays.toString(theData));
 					}
 				}
 			}
 			input.close();
-			outStreamTest.close();
+			MonthlyData.close();
+			//avg start
 			if ((avgCount < maxAvgCount) && (numberOfChar >= 39)) {
 				for (int i = 0; i < numberOfChar; i++) {
 					if(i != 3 && i != 30 && i != 31) { avgData[avgCount][i] = Double.parseDouble(theData[i]); } //ignore the non-numerical values, they don't matter
@@ -497,18 +494,18 @@ public class WindTurbine {
 					}
 					if (avgCount >= maxAvgCount) {  //When data has been read 20 times (10 min)
 						avgCount = 0;
-						for (int j = 0; j < maxAvgCount; j++) {
-							for (int k = 0; k < numberOfChar - 1; k++) {
+						for (int row = 0; row < maxAvgCount; row++) {
+							for (int col = 0; col < numberOfChar - 1; col++) {
 								double tempDouble = 0.0D;
 								try {
-									tempDouble = avgData[j][k];
+									tempDouble = avgData[row][col];
 								}
 								catch (NumberFormatException localNumberFormatException) {}
-								if (j == 0) {
-									tenMinAvgData[k] = tempDouble;
+								if (row == 0) {
+									tenMinAvgData[col] = tempDouble;
 								}
 								else {
-									tenMinAvgData[k] += tempDouble;
+									tenMinAvgData[col] += tempDouble;
 								}
 							}
 						}
@@ -520,25 +517,24 @@ public class WindTurbine {
 					}
 				}
 			}
+			//avg end
 			if (averagesReadyToPrint) {
-				FileWriter outFileWriterTest2 = new FileWriter(dataOutFileName2);
-				PrintWriter outStreamTest2 = new PrintWriter(outFileWriterTest2);
+				PrintWriter TenMinAverage = new PrintWriter(new FileWriter("tenminaveragewindturbine.csv"));
 
-				outStreamTest2.println(Arrays.toString(tenMinAvgData));
-				outStreamTest2.close();
+				TenMinAverage.println(Arrays.toString(tenMinAvgData));
+				TenMinAverage.close();
 
-				FileWriter outFileWriterTest3 = new FileWriter(dataOutFileName3, true);
-				PrintWriter outStreamTest3 = new PrintWriter(outFileWriterTest3);
+				PrintWriter TenMinAverageMonthly = new PrintWriter(new FileWriter("tenminaverage_ss" + now("yyyy_MM") + ".csv", true));
 
-				File dataFile3 = new File(dataOutFileName3);
+				File dataFile3 = new File("tenminaverage_ss" + now("yyyy_MM") + ".csv");
 				if (dataFile3.length() > 0L) {
-					outStreamTest3.println(theData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
+					TenMinAverageMonthly.println(theData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 				}
 				else {
-					outStreamTest3.println("Date, Power(watts), RPM, Wind(meters/sec), Total Energy(Watt-Hrs)");
-					outStreamTest3.println(theData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
+					TenMinAverageMonthly.println("Date, Power(watts), RPM, Wind(meters/sec), Total Energy(Watt-Hrs)");
+					TenMinAverageMonthly.println(theData[3] + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 				}
-				outStreamTest3.close();
+				TenMinAverageMonthly.close();
 
 
 
@@ -553,12 +549,12 @@ public class WindTurbine {
 						connection = DriverManager.getConnection(dbURL, username, password);
 					}
 					catch (ClassNotFoundException e) {
-						parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+						parent.errorLog("Class Error (10mDB): " + e.getMessage());
 						System.out.println(now("HH:mm dd MM yyyy") + "Database driver not found.");
 						return null;
 					}
 					catch (SQLException e) {
-						parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+						parent.errorLog("SQL Error (10minDB): " + e.getMessage());
 						System.out.println(now("HH:mm dd MM yyyy") + "Error opening the local db connection: " + e.getMessage());
 						return null;
 					}
@@ -578,14 +574,14 @@ public class WindTurbine {
 						ps.executeUpdate();
 					}
 					catch (SQLException e) {
-						parent.errorLog(now("HH:mm dd MM yyyy") + "Error sending to backup MySQL Database (10minAvg): " + e.getMessage());
+						parent.errorLog("Error sending to backup MySQL Database (10minAvg): " + e.getMessage());
 						System.out.println("Error sending to backup MySQL Database (10minAvg): " + e.getMessage());
 					}
 					try {
 						connection.close();
 					}
 					catch (SQLException e) {
-						parent.errorLog(now("HH:mm dd MM yyyy") + "Error closing the db connection(10MinAvg): " + e.getMessage());
+						parent.errorLog("Error closing the db connection(10MinAvg): " + e.getMessage());
 						System.out.println(now("HH:mm dd MM yyyy") + "Error closing the db connection(10MinAvg): " + e.getMessage());
 					}
 				}
@@ -593,7 +589,7 @@ public class WindTurbine {
 			}
 		}
 		catch (Exception e) {
-			parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			parent.errorLog("Unknwon Error (10minAVG): "  + e.getMessage());
 			System.out.println(now("HH:mm dd MM yyyy") + "Unknown error:");
 			e.printStackTrace();
 		}
@@ -688,7 +684,8 @@ public class WindTurbine {
 
 					System.out.println(now("HH:mm dd MM yyyy") + "*********************** 10 min Averages ************************");
 					System.out.println(String.format("%s %.2f %s", new Object[] { "Avg_power:", avgpower, ", " }) + String.format("%s %.2f %s", new Object[] { "Avg_RPM:", avgRPM, ", " }) + String.format("%s %.2f", new Object[] { "Avg_Wind:", avgWind }));
-
+					System.out.println();
+					
 					outStream.println("   *** " + mySysTitle + " Current Readings ***   " + "\n");
 					outStream.println("Last update: " + myTime);
 					outStream.println("Status - Turbine:" + ts + ", System:" + ss + ", Grid:" + gs + "\n");
@@ -754,7 +751,7 @@ public class WindTurbine {
 				}
 			}
 			catch (IOException e) {
-				parent.errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+				parent.errorLog("IO Error (timer): "  + e.getMessage());
 				System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
 				e.printStackTrace();
 			}

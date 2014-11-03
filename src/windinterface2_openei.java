@@ -201,7 +201,7 @@ public class windinterface2_openei {
 	public void errorLog(String s) {
 		if (s != null && s != "") {
 			errorStream = new PrintWriter(errorFileWriter);
-			errorStream.append("\n" + s);
+			errorStream.append("\n" + now("HH:mm dd MM yyyy") + " " + s);
 			errorStream.close();
 		}
 	}
