@@ -1,2 +1,0 @@
-08:15 20 10 2014Cannot run program "resources/skzcmd.exe": CreateProcess error=2, The system cannot find the file specified
-08:15 20 10 2014Cannot run program "resources/skzcmd.exe": CreateProcess error=2, The system cannot find the file specified

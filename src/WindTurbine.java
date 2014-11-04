@@ -59,9 +59,11 @@ public class WindTurbine {
 	double totEnergy;
 	String CurrentDate = "";
 	//End Vards from turbine...
+	boolean counted = false;
 	int sendToDBError = 1;
 	int sendToDBOptError = 1;
 	windinterface2_openei parent; //So you can pull needed references from the main class
+	//TODO: Make errors and prints turbine-specific
 	/**
 	 * @param wioei A reference to the parent that created it, a Wind Interface instance, to use for accessing parameters
 	 * @param SystemTitle The actual name of the turbine
@@ -83,7 +85,6 @@ public class WindTurbine {
 		System.out.println("Loaded Wind Turbine: " + SystemTitle);
 	}
 	/**
-	 * @param values Data to be sent to database.
 	 * @return Returns an int corresponding to if the data was sent successfully. 1 for success, 0 for connection error, -1 for OpenEI error.
 	 */
 	private int sendToOpenEIDataBase() {
@@ -92,7 +93,7 @@ public class WindTurbine {
 		int TurbineStatus = ts;
 		int GridStatus = gs;
 		int SystemStatus = ss;
-		
+
 		String[] myTime = CurrentDate.split(" ");
 		String[] myDate = myTime[0].split("/");
 		String[] myTimeHMS = myTime[1].split(":");
@@ -127,7 +128,7 @@ public class WindTurbine {
 			String check = null;
 			String s;
 			while ((s = br.readLine()) != null) {
-					check = s;
+				check = s;
 			}
 			if (check != null) {
 				if (parent.getDebug()) System.out.println("OpenEI return: " + check);
@@ -164,7 +165,7 @@ public class WindTurbine {
 	 */
 	private int sendToLocalDataBase(String baseURL) {
 		int didWork = 0;
-		
+
 		String[] myTime = CurrentDate.split(" ");
 		String[] myDate = myTime[0].split("/");
 		String[] myTimeHMS = myTime[1].split(":");
@@ -199,7 +200,7 @@ public class WindTurbine {
 			String check = null;
 			String s;
 			while ((s = br.readLine()) != null) {
-					check = s;
+				check = s;
 			}
 			if (parent.getDebug()) System.out.println("LocalDB return: " + check);
 			if (check.equals("SUCCESS")) {
@@ -322,7 +323,7 @@ public class WindTurbine {
 			String check = null;
 			String s;
 			while ((s = br.readLine()) != null) {
-					check = s;
+				check = s;
 			}
 			if (check.equals("SUCCESS")) {
 				didWork = 1;
@@ -405,6 +406,7 @@ public class WindTurbine {
 					String[] tempd1 = d[1].split(" ");
 					theData[1] = Double.parseDouble(tempd1[0].replaceAll("\\D", ""));
 					theData[2] = Double.parseDouble(tempd1[1]);
+
 					theData[4] = Double.parseDouble(d[2]);
 
 					for (int ii = 3; ii < d.length - 1; ii++) {
@@ -428,7 +430,7 @@ public class WindTurbine {
 
 					File dataFile = new File("ss" + now("yyyy_MM") + ".csv");
 					if (parent.getDebug()) System.out.println("Formatted data: " + Arrays.toString(theData));
-					if (dataFile.length() > 0L) {
+					if (dataFile.length() > 0) {
 						MonthlyData.println(Arrays.toString(theData));
 					}
 					else {
@@ -440,46 +442,48 @@ public class WindTurbine {
 			input.close();
 			MonthlyData.close();
 			//avg start
-			if ((avgCount < maxAvgCount) && (numberOfChar >= 39)) {
-				for (int i = 0; i < numberOfChar; i++) {
-					if(i != 3 && i != 30 && i != 31) { avgData[avgCount][i] = theData[i]; } //ignore the non-numerical values, they don't matter
-					if (i == numberOfChar - 1) {
-						avgCount += 1;
-					}
-					if (avgCount >= maxAvgCount) {  //When data has been read 20 times (10 min)
-						avgCount = 0;
-						for (int row = 0; row < maxAvgCount; row++) {
-							for (int col = 0; col < numberOfChar - 1; col++) {
-								double tempDouble = 0.0D;
-								try {
-									tempDouble = avgData[row][col];
-								}
-								catch (NumberFormatException localNumberFormatException) {}
-								if (row == 0) {
-									tenMinAvgData[col] = tempDouble;
-								}
-								else {
-									tenMinAvgData[col] += tempDouble;
-								}
-							}
+			if (numberOfChar >= 39) {
+				if(parent.getDebug()) System.out.println("Adding to avgData: " + Arrays.toString(theData));
+				avgData[avgCount] = theData;
+				avgCount++;
+				if (avgCount == 20) {
+					avgCount = 0;
+					counted = true;
+				}
+				if (counted) {
+					for(int col = 0;col < 40; col++) {
+						tenMinAvgData[col] = 0;
+						for (int row = 0;row < 20; row++) {
+							tenMinAvgData[col] += avgData[row][col];
 						}
-						for (int j = 0; j < numberOfChar - 1; j++) {
-							tenMinAvgData[j] /= maxAvgCount;
-						}
-						tenMinAvgData[2] = theData[2]; //grab current epoch time
-						averagesReadyToPrint = true;
+						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/20)*1000))/1000;
 					}
+				}
+				else {
+					for(int col = 0;col < 40; col++) {
+						tenMinAvgData[col] = 0;
+						for (int row = 0;row < 20; row++) {
+							tenMinAvgData[col] += avgData[row][col];
+						}
+						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/avgCount)*1000))/1000;
+					}
+				}
+				if (counted && avgCount == 0) {
+					tenMinAvgData[2] = GMT;
+					averagesReadyToPrint = true;
+				}
+				if(parent.getDebug()) {
+					System.out.println("Avg count: " + avgCount);
+					System.out.println("Avg data: " + Arrays.toString(tenMinAvgData));
 				}
 			}
 			//avg end
 			if (averagesReadyToPrint) {
 				PrintWriter TenMinAverage = new PrintWriter(new FileWriter("tenminaveragewindturbine.csv"));
-
 				TenMinAverage.println(Arrays.toString(tenMinAvgData));
 				TenMinAverage.close();
 
 				PrintWriter TenMinAverageMonthly = new PrintWriter(new FileWriter("tenminaverage_ss" + now("yyyy_MM") + ".csv", true));
-
 				File dataFile3 = new File("tenminaverage_ss" + now("yyyy_MM") + ".csv");
 				if (dataFile3.length() > 0L) {
 					TenMinAverageMonthly.println(CurrentDate + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
@@ -561,111 +565,108 @@ public class WindTurbine {
 		double avgWind = 0.0D;
 
 		double[] values = getskzcmd();
-			if (values[0] != 0.0d) {
-				wind = values[20];
-				power = values[13];
-				Watts = values[4];
-				RPM = values[19];
-				ts = (int)values[33];
-				ss = (int)values[35];
-				gs = (int)values[34];
-				volts = values[6];
-				Wind = values[20];
-				GMT = values[2];
-				KWatts = Watts / 1000.0D;
-				dayEnergy = (values[5] / 1000.0D);
-				totEnergy = (values[4] / 1000.0D);
-				volts = values[6];
+		if (values[0] != 0.0d) {
+			wind = values[20];
+			power = values[13];
+			Watts = values[4];
+			RPM = values[19];
+			ts = (int)values[33];
+			ss = (int)values[35];
+			gs = (int)values[34];
+			volts = values[6];
+			Wind = values[20];
+			GMT = values[2];
+			KWatts = Watts / 1000.0D;
+			dayEnergy = (values[5] / 1000.0D);
+			totEnergy = (values[4] / 1000.0D);
+			volts = values[6];
+		}
+		try {
+			if (tenMinAvgData[15] != 0.0D) {
+				avgpower = tenMinAvgData[13];
+				avgRPM = tenMinAvgData[19];
+				avgWind = tenMinAvgData[20];
 			}
-			try {
-				if (tenMinAvgData[15] != 0.0D) {
-					avgpower = tenMinAvgData[13];
-					avgRPM = tenMinAvgData[19];
-					avgWind = tenMinAvgData[20];
-					KWatts = tenMinAvgData[4];
+			for (int i = 0; i <= arraysize - 1; i++) {
+				cpowerstring = cpowerstring + "," + avgData[i][13];
+				cRPMstring = cRPMstring + "," + avgData[i][19];
+				ctimestring = ctimestring + "," + Double.toString(i);
+			}
+			if (values[0] != 0.0) {
+				sendToDBError = sendToOpenEIDataBase();
+				if (!parent.getDBURL().equals("none")) {
+					sendToDBOptError = sendToLocalDataBase(parent.getDBURL());
 				}
-				for (int i = 0; i <= arraysize - 1; i++) {
-					cpowerstring = cpowerstring + "," + avgData[i][13];
-					cRPMstring = cRPMstring + "," + avgData[i][19];
-					ctimestring = ctimestring + "," + Double.toString(i);
+				if (((parent.getDBURL().equals("none")) || (sendToDBOptError == -1)) && (!parent.getMySQLURL().equals("none"))) {
+					sendTo30sMysqlDatabase();
 				}
-				if (values[0] != 0.0) {
-					sendToDBError = sendToOpenEIDataBase();
-					if (!parent.getDBURL().equals("none")) {
-						sendToDBOptError = sendToLocalDataBase(parent.getDBURL());
-					}
-					if (((parent.getDBURL().equals("none")) || (sendToDBOptError == -1)) && (!parent.getMySQLURL().equals("none"))) {
-						sendTo30sMysqlDatabase();
-					}
-					System.out.println(now("HH:mm dd MM yyyy") + "********************** Current Readings ************************");
-					System.out.println("Status[TSG]:" + String.format("%04d",ts) + "," + String.format("%04d",ss) + "," + String.format("%04d",gs) + ", power:" + power + ", RPM:" + RPM + ", Wind:" + wind + ", " + String.format("%s %.2f %s", new Object[] { "Kwatt-Hrs:", Double.valueOf(KWatts), ""}));
-					System.out.println(now("HH:mm dd MM yyyy") + "*********************** 10 min Averages ************************");
-					System.out.println(String.format("%s %.2f %s", new Object[] { "Avg_power:", avgpower, ", " }) + String.format("%s %.2f %s", new Object[] { "Avg_RPM:", avgRPM, ", " }) + String.format("%s %.2f", new Object[] { "Avg_Wind:", avgWind }));
-					System.out.println();
-					
-					PrintWriter TurbineCurrent = new PrintWriter(new FileWriter("windturbinecurrent.txt"));
-					
-					TurbineCurrent.println("   *** " + mySysTitle + " Current Readings ***   " + "\n");
-					TurbineCurrent.println("Last update: " + CurrentDate);
-					TurbineCurrent.println("Status - Turbine:" + String.format("%04d",ts) + ", System:" + String.format("%04d",ss) + ", Grid:" + String.format("%04d",gs) + "\n");
-					TurbineCurrent.println("power:         " + power + " Watts");
+				System.out.println(now("HH:mm dd MM yyyy") + "*** Current Readings For: " + mySysTitle + "**********");
+				System.out.println("Status[TSG]:" + String.format("%04d",ts) + "," + String.format("%04d",ss) + "," + String.format("%04d",gs) + ", power:" + power + ", RPM:" + RPM + ", Wind:" + wind + ", " + String.format("%s %.2f %s", new Object[] { "Kwatt-Hrs:", Double.valueOf(KWatts), ""}));
+				System.out.println(now("HH:mm dd MM yyyy") + "*** 10 min Averages For: " + mySysTitle + "***********");
+				System.out.println(String.format("%s %.2f %s", new Object[] { "Avg_power:", avgpower, ", " }) + String.format("%s %.2f %s", new Object[] { "Avg_RPM:", avgRPM, ", " }) + String.format("%s %.2f", new Object[] { "Avg_Wind:", avgWind }));
+				System.out.println();
 
-					TurbineCurrent.println("Turbine Speed: " + RPM + " RPM");
-					TurbineCurrent.println("Wind Speed:    " + wind + " m/s" + "," + NumberFormat.getInstance().format(wind * 2.2369363D) + "mph");
-					TurbineCurrent.print("Daily Energy:   ");
-					TurbineCurrent.format("%s%.2f%s%n", new Object[] { " ", dayEnergy, " KWatt-Hrs" });
-					TurbineCurrent.print("Total Energy:   ");
-					if (values[0] == 103853) {
-						TurbineCurrent.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs (from 8/2/08)" });
-					}
-					else {
-						TurbineCurrent.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs" });
-					}
-					TurbineCurrent.println("            *** 10 min Averages ***   \n");
-					TurbineCurrent.format("%s %.2f%s%n", new Object[] { "Avg power:     ", avgpower, " Watts" });
-					TurbineCurrent.format("%s %.2f%s%n", new Object[] { "Turbine Speed: ", avgRPM, " RPM" });
-					TurbineCurrent.format("%s %.2f %s %.2f %s %n", new Object[] { "Wind Speed:    ", avgWind, " m/s", (avgWind * 2.2369363D), "mph" });
-					TurbineCurrent.println("\n* windspeed is for reference only");
-					TurbineCurrent.close();
-
-					PrintWriter ChartOut = new PrintWriter(new FileWriter("chart.html"));
-					
-					ChartOut.println("<HTML><HEAD><TITLE>" + mySysTitle + " Wind Power Generation </TITLE> <meta http-equiv=" + '"' + "refresh" + '"' + " content=" + '"' + "30" + '"' + "></HEAD>");
-					ChartOut.println("<BODY bgcolor = \"gray\">");
-					ChartOut.println("<a href=\"http://www.inl.gov\">Idaho National Laboratory</a><BR>");
-					ChartOut.println("<APPLET CODE=\"Line2D.class\" WIDTH=800 HEIGHT=600>");
-					ChartOut.println("<PARAM name=\"title\" value=\"Wind Turbine Generation\">");
-					ChartOut.println("<PARAM name=\"show_small_squares\" value=\"6\">");
-					ChartOut.println("<PARAM name=\"show_legend_on_right\">");
-					ChartOut.println("<PARAM name=\"legend_border_off\">");
-					ChartOut.println("<PARAM name=\"show_percents_on_legend\">");
-					ChartOut.println("<PARAM name=\"back_grid_color\" value=\"0,100,200\">");
-					ChartOut.println("<PARAM name=\"Y_axis_description\" value=\"Turbine Power/RPM\">");
-					ChartOut.println("<PARAM name=\"X_axis_description\" value=\"Time\">");
-					ChartOut.println("<PARAM name=\"variation_series\" value=\"" + ctimestring + '"' + ">");
-					ChartOut.println("<PARAM name=\"data_set_1\" value=\"" + cpowerstring + '"' + ">");
-					ChartOut.println("<PARAM name=\"description_1\" value=\"Power\">");
-					ChartOut.println("<PARAM name=\"data_set_2\" value=\"" + cRPMstring + '"' + ">");
-					ChartOut.println("<PARAM name=\"description_2\" value=\"RPM\">");
-					ChartOut.println("</APPLET>");
-					ChartOut.println("<BR><input type=\"button\" value=\"Close this window\" onclick=\"self.close()\">");
-					ChartOut.println("</BODY></HTML>");
-					ChartOut.close();
-					
-					PrintWriter TurbineMostCurrent = new PrintWriter(new FileWriter("mostcurrentwindturbine.csv"));
-					
-					TurbineMostCurrent.println(Arrays.toString(values));
-					TurbineMostCurrent.close();
+				PrintWriter TurbineCurrent = new PrintWriter(new FileWriter("windturbinecurrent.txt"));
+				TurbineCurrent.println("   *** " + mySysTitle + " Current Readings ***   " + "\n");
+				TurbineCurrent.println("Last update: " + CurrentDate);
+				TurbineCurrent.println("Status - Turbine:" + String.format("%04d",ts) + ", System:" + String.format("%04d",ss) + ", Grid:" + String.format("%04d",gs) + "\n");
+				TurbineCurrent.println("power:         " + power + " Watts");
+				TurbineCurrent.println("Turbine Speed: " + RPM + " RPM");
+				TurbineCurrent.println("Wind Speed:    " + wind + " m/s" + "," + NumberFormat.getInstance().format(wind * 2.2369363D) + "mph");
+				TurbineCurrent.print("Daily Energy:   ");
+				TurbineCurrent.format("%s%.2f%s%n", new Object[] { " ", dayEnergy, " KWatt-Hrs" });
+				TurbineCurrent.print("Total Energy:   ");
+				if (values[0] == 103853) {
+					TurbineCurrent.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs (from 8/2/08)" });
 				}
 				else {
-					System.out.println("error: no data from turbine");
+					TurbineCurrent.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs" });
 				}
+				TurbineCurrent.println("            *** 10 min Averages ***   \n");
+				TurbineCurrent.format("%s %.2f%s%n", new Object[] { "Avg power:     ", avgpower, " Watts" });
+				TurbineCurrent.format("%s %.2f%s%n", new Object[] { "Turbine Speed: ", avgRPM, " RPM" });
+				TurbineCurrent.format("%s %.2f %s %.2f %s %n", new Object[] { "Wind Speed:    ", avgWind, " m/s", (avgWind * 2.2369363D), "mph" });
+				TurbineCurrent.println("\n* windspeed is for reference only");
+				TurbineCurrent.close();
+
+				PrintWriter ChartOut = new PrintWriter(new FileWriter("chart.html"));
+
+				ChartOut.println("<HTML><HEAD><TITLE>" + mySysTitle + " Wind Power Generation </TITLE> <meta http-equiv=" + '"' + "refresh" + '"' + " content=" + '"' + "30" + '"' + "></HEAD>");
+				ChartOut.println("<BODY bgcolor = \"gray\">");
+				ChartOut.println("<a href=\"http://www.inl.gov\">Idaho National Laboratory</a><BR>");
+				ChartOut.println("<APPLET CODE=\"Line2D.class\" WIDTH=800 HEIGHT=600>");
+				ChartOut.println("<PARAM name=\"title\" value=\"Wind Turbine Generation\">");
+				ChartOut.println("<PARAM name=\"show_small_squares\" value=\"6\">");
+				ChartOut.println("<PARAM name=\"show_legend_on_right\">");
+				ChartOut.println("<PARAM name=\"legend_border_off\">");
+				ChartOut.println("<PARAM name=\"show_percents_on_legend\">");
+				ChartOut.println("<PARAM name=\"back_grid_color\" value=\"0,100,200\">");
+				ChartOut.println("<PARAM name=\"Y_axis_description\" value=\"Turbine Power/RPM\">");
+				ChartOut.println("<PARAM name=\"X_axis_description\" value=\"Time\">");
+				ChartOut.println("<PARAM name=\"variation_series\" value=\"" + ctimestring + '"' + ">");
+				ChartOut.println("<PARAM name=\"data_set_1\" value=\"" + cpowerstring + '"' + ">");
+				ChartOut.println("<PARAM name=\"description_1\" value=\"Power\">");
+				ChartOut.println("<PARAM name=\"data_set_2\" value=\"" + cRPMstring + '"' + ">");
+				ChartOut.println("<PARAM name=\"description_2\" value=\"RPM\">");
+				ChartOut.println("</APPLET>");
+				ChartOut.println("<BR><input type=\"button\" value=\"Close this window\" onclick=\"self.close()\">");
+				ChartOut.println("</BODY></HTML>");
+				ChartOut.close();
+
+				PrintWriter TurbineMostCurrent = new PrintWriter(new FileWriter("mostcurrentwindturbine.csv"));
+
+				TurbineMostCurrent.println(Arrays.toString(values));
+				TurbineMostCurrent.close();
 			}
-			catch (IOException e) {
-				parent.errorLog("IO Error (timer): "  + e.getMessage());
-				System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
-				e.printStackTrace();
+			else {
+				System.out.println("error: no data from turbine: " + mySysTitle + " ID: " + mySysID);
 			}
+		}
+		catch (IOException e) {
+			parent.errorLog("IO Error (timer): "  + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + "IOExcepton:");
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * @param dateFormat
