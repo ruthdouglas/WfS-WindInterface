@@ -1,3 +1,4 @@
+package org.openei.windinterface;
 import java.util.TimerTask;
 
 class WindTimerTask extends TimerTask {

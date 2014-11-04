@@ -1,3 +1,4 @@
+package org.openei.windinterface;
 import java.awt.AWTException;
 import java.io.File;
 import java.io.FileWriter;
@@ -47,6 +48,8 @@ public class windinterface2_openei {
 	String errorLog;
 	FileWriter errorFileWriter;
 	PrintWriter errorStream;
+	String WIVersion;
+	String WIName;
 	//TODO: Should GMT offset be negative?
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
@@ -100,8 +103,9 @@ public class windinterface2_openei {
 			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
-		windowSystemName = "Open EI Wind Interface";
-		System.out.println("windinterface version openei 2.1 using:");
+	    WIName = this.getClass().getPackage().getSpecificationTitle();
+	    WIVersion = this.getClass().getPackage().getSpecificationVersion();
+		System.out.println(WIName + " Version: " + WIVersion + " using:");
 		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT+ " + myGMT_Offset);
 		System.out.println("Initialization complete.");
 		System.out.println("Loading Turbines.....");
