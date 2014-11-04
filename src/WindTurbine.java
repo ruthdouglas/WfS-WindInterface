@@ -23,7 +23,6 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
-
 /**
  * @author Ian Mason
  * Class created to hold properties of a Winnd Turbine. This class holds all things specific to an individual turbine, and
@@ -113,10 +112,8 @@ public class WindTurbine {
 
 			String[] data = {mySerialNum,tempString,Double.toString(power),Double.toString(dayEnergy),Double.toString(Watts),Double.toString(RPM),Double.toString(Wind),Double.toString(volts),String.format("%04d",TurbineStatus),String.format("%04d",SystemStatus),String.format("%04d",GridStatus)};
 			if (parent.getDebug()) System.out.println("OpenEI Data: " + Arrays.toString(data));
-			int i = 0;
-			while (i < keys.length) {
+			for (int i=0;i < keys.length;i++) {
 				dataMap.put(keys[i], data[i]);
-				i++;
 			}
 			Gson gson = new Gson();
 			String dataJsonString = gson.toJson(dataMap);
@@ -130,9 +127,7 @@ public class WindTurbine {
 			String check = null;
 			String s;
 			while ((s = br.readLine()) != null) {
-				if (s != null) {
 					check = s;
-				}
 			}
 			if (check != null) {
 				if (parent.getDebug()) System.out.println("OpenEI return: " + check);
@@ -204,9 +199,7 @@ public class WindTurbine {
 			String check = null;
 			String s;
 			while ((s = br.readLine()) != null) {
-				if (s != null) {
 					check = s;
-				}
 			}
 			if (parent.getDebug()) System.out.println("LocalDB return: " + check);
 			if (check.equals("SUCCESS")) {
@@ -329,9 +322,7 @@ public class WindTurbine {
 			String check = null;
 			String s;
 			while ((s = br.readLine()) != null) {
-				if (s != null) {
 					check = s;
-				}
 			}
 			if (check.equals("SUCCESS")) {
 				didWork = 1;
@@ -425,9 +416,7 @@ public class WindTurbine {
 					pwrTot = theData[4];
 
 					theData[4] = pwrTot + myPowerOffset;
-					String date = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + (parent.getGMTOffset()) * 3600.0D) * 1000.0D));
-
-					CurrentDate = date;
+					CurrentDate = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + (parent.getGMTOffset()) * 3600.0D) * 1000.0D));
 
 					int tempHrs = Integer.parseInt(now("HH"));
 					int tempMin = Integer.parseInt(now("mm"));
@@ -563,10 +552,6 @@ public class WindTurbine {
 	 */
 	public void timerrun () {
 		int arraysize = maxAvgCount;
-		//String power = "0";
-		double Watts = 0.0d;
-		double RPM = 0.0d;
-		String myTime = "0";
 		String cpowerstring = "";
 		String cRPMstring = "";
 		String ctimestring = "";
@@ -574,8 +559,6 @@ public class WindTurbine {
 		double KWatts = 0.0D;
 		double avgRPM = 0.0D;
 		double avgWind = 0.0D;
-		double dailyTotal = 0.0D;
-		int i = 0;
 
 		double[] values = getskzcmd();
 			if (values[0] != 0.0d) {
@@ -601,7 +584,7 @@ public class WindTurbine {
 					avgWind = tenMinAvgData[20];
 					KWatts = tenMinAvgData[4];
 				}
-				for (i = 0; i <= arraysize - 1; i++) {
+				for (int i = 0; i <= arraysize - 1; i++) {
 					cpowerstring = cpowerstring + "," + avgData[i][13];
 					cRPMstring = cRPMstring + "," + avgData[i][19];
 					ctimestring = ctimestring + "," + Double.toString(i);
@@ -623,14 +606,14 @@ public class WindTurbine {
 					PrintWriter TurbineCurrent = new PrintWriter(new FileWriter("windturbinecurrent.txt"));
 					
 					TurbineCurrent.println("   *** " + mySysTitle + " Current Readings ***   " + "\n");
-					TurbineCurrent.println("Last update: " + myTime);
+					TurbineCurrent.println("Last update: " + CurrentDate);
 					TurbineCurrent.println("Status - Turbine:" + String.format("%04d",ts) + ", System:" + String.format("%04d",ss) + ", Grid:" + String.format("%04d",gs) + "\n");
 					TurbineCurrent.println("power:         " + power + " Watts");
 
 					TurbineCurrent.println("Turbine Speed: " + RPM + " RPM");
 					TurbineCurrent.println("Wind Speed:    " + wind + " m/s" + "," + NumberFormat.getInstance().format(wind * 2.2369363D) + "mph");
 					TurbineCurrent.print("Daily Energy:   ");
-					TurbineCurrent.format("%s%.2f%s%n", new Object[] { " ", dailyTotal, " KWatt-Hrs" });
+					TurbineCurrent.format("%s%.2f%s%n", new Object[] { " ", dayEnergy, " KWatt-Hrs" });
 					TurbineCurrent.print("Total Energy:   ");
 					if (values[0] == 103853) {
 						TurbineCurrent.format("%s%.2f%s%n%n", new Object[] { " ", KWatts, " KWatt-Hrs (from 8/2/08)" });
