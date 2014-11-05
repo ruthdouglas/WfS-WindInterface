@@ -1,4 +1,4 @@
-package org.openei.windinterface;
+package openei.windinterface;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -457,7 +457,7 @@ public class WindTurbine {
 						for (int row = 0;row < 20; row++) {
 							tenMinAvgData[col] += avgData[row][col];
 						}
-						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/20)*1000))/1000;
+						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/20.00d)*1000))/1000;
 					}
 				}
 				else {
@@ -466,7 +466,7 @@ public class WindTurbine {
 						for (int row = 0;row < 20; row++) {
 							tenMinAvgData[col] += avgData[row][col];
 						}
-						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/avgCount)*1000))/1000;
+						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/(double)avgCount)*1000))/1000;
 					}
 				}
 				if (counted && avgCount == 0) {
@@ -601,9 +601,9 @@ public class WindTurbine {
 				if (((parent.getDBURL().equals("none")) || (sendToDBOptError == -1)) && (!parent.getMySQLURL().equals("none"))) {
 					sendTo30sMysqlDatabase();
 				}
-				System.out.println(now("HH:mm dd MM yyyy") + "*** Current Readings For: " + mySysTitle + "**********");
+				System.out.println(now("HH:mm dd MM yyyy") + "** Current Readings For: " + mySysTitle + "**");
 				System.out.println("Status[TSG]:" + String.format("%04d",ts) + "," + String.format("%04d",ss) + "," + String.format("%04d",gs) + ", power:" + power + ", RPM:" + RPM + ", Wind:" + wind + ", " + String.format("%s %.2f %s", new Object[] { "Kwatt-Hrs:", Double.valueOf(KWatts), ""}));
-				System.out.println(now("HH:mm dd MM yyyy") + "*** 10 min Averages For: " + mySysTitle + "***********");
+				System.out.println(now("HH:mm dd MM yyyy") + "** 10 min Averages For: " + mySysTitle + "***");
 				System.out.println(String.format("%s %.2f %s", new Object[] { "Avg_power:", avgpower, ", " }) + String.format("%s %.2f %s", new Object[] { "Avg_RPM:", avgRPM, ", " }) + String.format("%s %.2f", new Object[] { "Avg_Wind:", avgWind }));
 				System.out.println();
 

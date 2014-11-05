@@ -1,10 +1,10 @@
-Manifest-Version: 1.1
-Rsrc-Class-Path: ./ gson-2.2.4.jar mysql-connector-java-5.1.8-bin.jar servlet-api.jar
-Class-Path: .
-Rsrc-Main-Class: windinterface2_openei
-Main-Class: org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader
-Name: openei/windinterface
-Specification-Title: OpenEI Wind Interface
-Specification-Version: 2.3
-Implementation-Title: openei.windinterface 
+Manifest-Version: 1.0
 Implementation-Version: 30
+Specification-Version: 2.3
+Implementation-Title: openei.windinterface
+Specification-Title: OpenEI Wind Interface
+Rsrc-Class-Path: ./ gson-2.2.4.jar mysql-connector-java-5.1.8-bin.jar
+Class-Path: .
+Rsrc-Main-Class: openei.windinterface.windinterface2_openei
+Main-Class: org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader
+

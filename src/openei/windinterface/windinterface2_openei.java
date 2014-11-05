@@ -1,4 +1,4 @@
-package org.openei.windinterface;
+package openei.windinterface;
 import java.awt.AWTException;
 import java.io.File;
 import java.io.FileWriter;
@@ -48,8 +48,8 @@ public class windinterface2_openei {
 	String errorLog;
 	FileWriter errorFileWriter;
 	PrintWriter errorStream;
-	String WIVersion;
-	String WIName;
+	String WIVersion = "2.2";
+	String WIName = "OpenEI Wind Interface";
 	//TODO: Should GMT offset be negative?
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
@@ -103,8 +103,12 @@ public class windinterface2_openei {
 			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
-	    WIName = this.getClass().getPackage().getSpecificationTitle();
-	    WIVersion = this.getClass().getPackage().getSpecificationVersion();
+		//java.util.Properties prop = new java.util.Properties();
+		//prop.load(getResourceAsStream("/META-INF/MANIFEST.MF"));
+		//String applVersion = prop.getProperty("Implementation-Version"); 
+	    Package p = this.getClass().getPackage();
+	    if (p.getSpecificationTitle() != null) WIName = p.getSpecificationTitle();
+	    if (p.getSpecificationVersion()!= null) WIVersion = p.getSpecificationVersion();
 		System.out.println(WIName + " Version: " + WIVersion + " using:");
 		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT+ " + myGMT_Offset);
 		System.out.println("Initialization complete.");
