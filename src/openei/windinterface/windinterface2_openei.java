@@ -16,8 +16,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * @author Ian Mason
- *
+ * @author Mark McKay, Justin Leis, Ian Mason
+ * @version 2.2 OpenEI
  */
 
 public class windinterface2_openei {
@@ -50,12 +50,12 @@ public class windinterface2_openei {
 	PrintWriter errorStream;
 	String WIVersion = "2.2";
 	String WIName = "OpenEI Wind Interface";
-	//TODO: Should GMT offset be negative?
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
 	}
 	/**
-	 * @param args
+	 * @param args Any parameters passed to the jar via command line, none matter.
+	 * This method loads the config from XML, and initiates the loading of turbine data.
 	 */
 	public windinterface2_openei(final String[] args) {
 		System.out.println("Initialing....");
@@ -103,9 +103,6 @@ public class windinterface2_openei {
 			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
 			e.printStackTrace();
 		}
-		//java.util.Properties prop = new java.util.Properties();
-		//prop.load(getResourceAsStream("/META-INF/MANIFEST.MF"));
-		//String applVersion = prop.getProperty("Implementation-Version"); 
 	    Package p = this.getClass().getPackage();
 	    if (p.getSpecificationTitle() != null) WIName = p.getSpecificationTitle();
 	    if (p.getSpecificationVersion()!= null) WIVersion = p.getSpecificationVersion();
@@ -117,7 +114,7 @@ public class windinterface2_openei {
 	}
 
 	/**
-	 * 
+	 * This method loads turbine setting data, and passed it to the WindTurbine class
 	 */
 	void loadTurbines() {
 		try {
@@ -162,49 +159,51 @@ public class windinterface2_openei {
 		System.out.println("Loaded Turbines.");
 	}
 	/**
-	 * @return
+	 * @return Returns the Database URL.
+	 * Getter method for the Database URL.
 	 */
 	public String getDBURL () {
 		return myDBURL;
 	}
 	/**
-	 * @return
+	 * @return Returns the MySQL Database URL.
+	 * Getter method for the MySQL Database URL.
 	 */
 	public String getMySQLURL () {
 		return myMySQLURL;
 	}
 	/**
-	 * @return
+	 * @return Returns the Local Path of the JAR.
+	 * Getter method for the Local Path of the JAR.
 	 */
 	public String getPath () {
 		return myPath;
 	}
 	/**
-	 * @return
+	 * @return Returns the GMT offset from XML settings.
+	 * Getter mothod for the GMT offset from XML settings. This should be positive in the US since this the time is already
+	 * in local time, but needs to be in GMT.
 	 */
 	public Double getGMTOffset () {
 		return myGMT_Offset;
 	}
 	/**
-	 * @return
+	 * @return Returns the MySQL Username from XML.
+	 * Getter method for the MySQL Username.
 	 */
 	public String getMySQLUser () {
 		return myMySQLUser;
 	}
 	/**
-	 * @return
+	 * @return Returns the MySQL Password from XML.
+	 * Getter method for the MySQL Password. This is protected to other programs outside the package can't hook in and grab the password
 	 */
 	protected String getMySQLPass () {
 		return myMySQLPass;
 	}
 	/**
-	 * @return
-	 */
-	public boolean isDebug() {
-		return debug;
-	}
-	/**
-	 * @param s
+	 * @param s String to be saved to the error log.
+	 * Method for logging errors to errorlog.txt
 	 */
 	public void errorLog(String s) {
 		if (s != null && s != "") {
@@ -214,14 +213,16 @@ public class windinterface2_openei {
 		}
 	}
 	/**
-	 * @return
+	 * @return Returns a boolean to determine if Debug mode is enabled.
+	 * Getter method for Debug mode.
 	 */
 	public boolean getDebug() {
 		return debug;
 	}
 	/**
-	 * @param dateFormat
-	 * @return
+	 * @param dateFormat Format for the date.
+	 * @return Current date formatted using date parameters.
+	 * Method for requesting portions of the date, or a formatted date.
 	 */
 	public String now(String dateFormat) {
 		Calendar cal = Calendar.getInstance();
