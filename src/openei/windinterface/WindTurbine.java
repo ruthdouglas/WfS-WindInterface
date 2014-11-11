@@ -147,7 +147,7 @@ public class WindTurbine {
 				if (parent.getDebug()) System.out.println(mySysTitle + "OpenEI return: " + check);
 				if (check.substring(0, 6).equals("{\"Item")) {
 					didWork = 1;
-					System.out.println(mySysTitle + "Data was Successfully sent to OpenEI");
+					System.out.println(mySysTitle + " Data was Successfully sent to OpenEI");
 				}
 				else {
 					didWork = -1;
@@ -219,7 +219,7 @@ public class WindTurbine {
 			if (parent.getDebug()) System.out.println(mySysTitle + "LocalDB return: " + check);
 			if (check.equals("SUCCESS")) {
 				didWork = 1;
-				System.out.println(mySysTitle + "Data was Successfully sent to Local 30s Database (HTTP)");
+				System.out.println(mySysTitle + " Data was Successfully sent to Local 30s Database (HTTP)");
 			}
 			else {
 				didWork = -1;
@@ -260,17 +260,17 @@ public class WindTurbine {
 		}
 		catch (ClassNotFoundException e) {
 			parent.errorLog(mySysTitle + "Class Error (30sSQL): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Database driver not found.");
+			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + " Database driver not found.");
 			return -1;
 		}
 		catch (SQLException e) {
-			parent.errorLog(mySysTitle + "SQL Error on open (30sSQL): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Local Error opening the db connection: " + e.getMessage());
+			parent.errorLog(mySysTitle + " SQL Error on open (30sSQL): " + e.getMessage());
+			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + " Local Error opening the db connection: " + e.getMessage());
 			return -1;
 		}
 		try {
 			String myQry = "INSERT into windturbine( \tpower       ,\tvolts,\twindspeed,\ttotalpower,\trpm,\tcurrenttime) VALUES (?,?,?,?,?,?) ";
-			if (parent.getDebug()) System.out.println(mySysTitle + "SQL 30s DB query: " + myQry);
+			if (parent.getDebug()) System.out.println(mySysTitle + " SQL 30s DB query: " + myQry);
 			PreparedStatement ps = connection.prepareStatement(myQry);
 			ps.setDouble(1, power);
 			ps.setDouble(2, volts);
@@ -280,7 +280,7 @@ public class WindTurbine {
 			Timestamp sqlTimestamp = new Timestamp((long) ((GMT + (parent.getGMTOffset()) * 3600.0D) * 1000L));
 			ps.setTimestamp(6, sqlTimestamp);
 
-			System.out.println(mySysTitle + "Trying Backup MySQL Database (30s)...");
+			System.out.println(mySysTitle + " Trying Backup MySQL Database (30s)...");
 			ps.executeUpdate();
 		}
 		catch (SQLException e) {
