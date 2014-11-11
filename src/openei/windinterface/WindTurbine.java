@@ -25,15 +25,14 @@ import java.util.Map;
 import com.google.gson.Gson;
 
 /**
- * @author Ian Mason
  * Class created to hold properties of a Winnd Turbine. This class holds all things specific to an individual turbine, and
  * methods to help perform tasks specific to that turbine.
  */
 public class WindTurbine {
 	int avgCount = 0; //Used when printing avgs
-	int maxAvgCount = 20;  //Used when printing avgs
+	int maxAvgCount = 20;  //Used when printing avgs, 1 reading every 30 sec, 10 min avgs
 	boolean averagesReadyToPrint = false;  //Used when printing avgs
-	double[][] avgData = new double[20][40];
+	double[][] avgData = new double[maxAvgCount][40];
 	double[] tenMinAvgData = new double[40];
 	//Vars from config...
 	String mySysTitle;
@@ -81,20 +80,22 @@ public class WindTurbine {
 		mySysName = SystemName;
 		myApiKey = APIKey;
 		myPowerOffset = PowerOffset;
-		myDailyTotal = readDailyTot();
-		System.out.println("Loaded Wind Turbine: " + SystemTitle);
 		File dataFile3 = new File(mySysTitle + "_tenminaveragewindturbine.csv");
 		try {
 			dataFile3.createNewFile();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 		dataFile3 = new File(mySysTitle + "_mostcurrentwindturbine.csv");
 		try {
 			dataFile3.createNewFile();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
+		myDailyTotal = readDailyTot();
+		System.out.println("Loaded Wind Turbine: " + SystemTitle);
 	}
 	/**
 	 * @return Returns an int corresponding to if the data was sent successfully. 1 for success, 0 for connection error, -1 for OpenEI error.
@@ -102,7 +103,6 @@ public class WindTurbine {
 	 */
 	private int sendToOpenEIDataBase() {
 		int didWork = 0;
-		//double GMTTime = Double.parseDouble(inData[2]);
 		int TurbineStatus = ts;
 		int GridStatus = gs;
 		int SystemStatus = ss;
@@ -439,7 +439,7 @@ public class WindTurbine {
 					if ((tempHrs == 0) && (tempMin == 0)) {
 						myDailyTotal = 0.0D;
 					}
-					myDailyTotal += (theData[13] * 0.0083333D);
+					myDailyTotal += (theData[13] * 0.0083333D); //This is 1/120, because there are 120 per hour
 					theData[5] = readDailyTot();
 
 					File dataFile = new File(mySysTitle + "_ss" + now("yyyy_MM") + ".csv");
@@ -460,14 +460,14 @@ public class WindTurbine {
 				if(parent.getDebug()) System.out.println(mySysTitle + "Adding to avgData: " + Arrays.toString(theData));
 				avgData[avgCount] = theData;
 				avgCount++;
-				if (avgCount == 20) {
+				if (avgCount == maxAvgCount) {
 					avgCount = 0;
 					counted = true;
 				}
 				if (counted) {
 					for(int col = 0;col < 40; col++) {
 						tenMinAvgData[col] = 0;
-						for (int row = 0;row < 20; row++) {
+						for (int row = 0;row < maxAvgCount; row++) {
 							tenMinAvgData[col] += avgData[row][col];
 						}
 						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/20.00d)*1000))/1000;
@@ -476,7 +476,7 @@ public class WindTurbine {
 				else {
 					for(int col = 0;col < 40; col++) {
 						tenMinAvgData[col] = 0;
-						for (int row = 0;row < 20; row++) {
+						for (int row = 0;row < maxAvgCount; row++) {
 							tenMinAvgData[col] += avgData[row][col];
 						}
 						tenMinAvgData[col] = Math.round(((tenMinAvgData[col]/(double)avgCount)*1000))/1000;
