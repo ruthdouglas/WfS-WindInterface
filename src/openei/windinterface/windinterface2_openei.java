@@ -48,7 +48,7 @@ public class windinterface2_openei {
 	String errorLog;
 	FileWriter errorFileWriter;
 	PrintWriter errorStream;
-	String WIVersion = "2.2";
+	String WIVersion = "2.3 Release 1";
 	String WIName = "OpenEI Wind Interface";
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
