@@ -19,7 +19,7 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Mark McKay, Justin Leis, Ian Mason
- * @version 2.2 OpenEI
+ * @version 2.3.2 OpenEI
  */
 
 public class windinterface2_openei {
@@ -57,7 +57,7 @@ public class windinterface2_openei {
 	FileWriter debugFileWriter;
 	PrintWriter errorStream;
 	PrintWriter debugStream;
-	String WIVersion = "2.3 Release 2";
+	String WIVersion = "2.3 Release 3 Multi-Turbine";
 
 	String WIName = "OpenEI Wind Interface";
 
