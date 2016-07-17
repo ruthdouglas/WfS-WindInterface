@@ -39,7 +39,7 @@ End Sample-->
 	<A>
 		<sys_title>Northern Arizona University ARD SkyStream</sys_title>
 		<sys_id>405cf2ee</sys_id>
-		<serial_num>2011-0584</serial_num>
+		<serial_num>3011-0584</serial_num>
 		<sys_name>20ard12</sys_name>
 		<api_key>A31259F1-B3D9-4D78-A6E2-9111C921B480</api_key>
 		<pwr_offset>0</pwr_offset>
@@ -53,10 +53,6 @@ End Sample-->
 		<pwr_offset>100</pwr_offset>
 	</B>
 	<system>
-		<dbURL>none</dbURL>
-		<mysqlURL>none</mysqlURL>
-		<mysqlUser>none</mysqlUser>
-		<mysqlPass>none</mysqlPass>
 		<gmt_offset>7.0</gmt_offset></system>
 </turbine>
 <!--

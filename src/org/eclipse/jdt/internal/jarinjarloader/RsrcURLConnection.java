@@ -20,10 +20,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 
-
 /**
- * This class will be compiled into the binary jar-in-jar-loader.zip. This ZIP is used for the
- * "Runnable JAR File Exporter"
+ * This class will be compiled into the binary jar-in-jar-loader.zip. This ZIP
+ * is used for the "Runnable JAR File Exporter"
  * 
  * @since 3.5
  */
@@ -33,20 +32,19 @@ public class RsrcURLConnection extends URLConnection {
 
 	public RsrcURLConnection(URL url, ClassLoader classLoader) {
 		super(url);
-		this.classLoader= classLoader;
+		this.classLoader = classLoader;
 	}
 
 	public void connect() throws IOException {
 	}
 
 	public InputStream getInputStream() throws IOException {
-		String file= URLDecoder.decode(url.getFile(), JIJConstants.UTF8_ENCODING);
-		InputStream result= classLoader.getResourceAsStream(file);
+		String file = URLDecoder.decode(url.getFile(), JIJConstants.UTF8_ENCODING);
+		InputStream result = classLoader.getResourceAsStream(file);
 		if (result == null) {
 			throw new MalformedURLException("Could not open InputStream for URL '" + url + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		return result;
 	}
-
 
 }
