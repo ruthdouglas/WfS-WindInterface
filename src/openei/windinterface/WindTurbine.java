@@ -19,13 +19,14 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gson.Gson;
 
 /**
- * Class created to hold properties of a Winnd Turbine. This class holds all things specific to an individual turbine, and
+ * Class created to hold properties of a Wind Turbine. This class holds all things specific to an individual turbine, and
  * methods to help perform tasks specific to that turbine.
  */
 public class WindTurbine {
@@ -34,6 +35,7 @@ public class WindTurbine {
 	boolean averagesReadyToPrint = false;  //Used when printing avgs
 	double[][] avgData = new double[maxAvgCount][40];
 	double[] tenMinAvgData = new double[40];
+	SimpleDateFormat DateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 	//Vars from config...
 	String mySysTitle;
 	String mySysID;
@@ -50,14 +52,14 @@ public class WindTurbine {
 	double RPM;
 	double Watts;
 	double Wind;
-	double GMT;
 	int ts = 0000;
 	int ss = 0000;
 	int gs = 0000;
 	double myDailyTotal = 0.0D;
 	double totEnergy;
-	String CurrentDate = "";
-	//End Vards from turbine...
+	Date LastUploadTime;
+	String DateString;
+	//End Vars from turbine...
 	boolean counted = false;
 	int sendToDBError = 1;
 	int sendToDBOptError = 1;
@@ -87,9 +89,9 @@ public class WindTurbine {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		dataFile3 = new File(mySysTitle + "_mostcurrentwindturbine.csv");
+		File dataFile4 = new File(mySysTitle + "_mostcurrentwindturbine.csv");
 		try {
-			dataFile3.createNewFile();
+			dataFile4.createNewFile();
 		}
 		catch (IOException e) {
 			e.printStackTrace();
@@ -107,25 +109,13 @@ public class WindTurbine {
 		int GridStatus = gs;
 		int SystemStatus = ss;
 
-		String[] myTime = CurrentDate.split(" ");
-		String[] myDate = myTime[0].split("/");
-		String[] myTimeHMS = myTime[1].split(":");
-
-		int year = Integer.parseInt(myDate[2]);
-		int month = Integer.parseInt(myDate[0]);
-		int day = Integer.parseInt(myDate[1]);
-		int hour = Integer.parseInt(myTimeHMS[0]);
-		int min = Integer.parseInt(myTimeHMS[1]);
-		int sec = Integer.parseInt(myTimeHMS[2]);
-
-		String tempString = year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
 		try {
 			String[] keys = {"turbineID","Day&time","PowerW","DailyKW","TotalKW","RPM","Wind","Volts","Tstat","Sstat","Gstat"};
 
 			Map<String, String> dataMap = new HashMap<String, String>();
 
-			String[] data = {mySerialNum,tempString,Double.toString(power),Double.toString(myDailyTotal),Double.toString(Watts),Double.toString(RPM),Double.toString(Wind),Double.toString(volts),String.format("%04d",TurbineStatus),String.format("%04d",SystemStatus),String.format("%04d",GridStatus)};
-			if (parent.getDebug()) System.out.println(mySysTitle + " OpenEI Data: " + Arrays.toString(data));
+			String[] data = {mySerialNum,DateString,Double.toString(power),Double.toString(myDailyTotal),Double.toString(Watts),Double.toString(RPM),Double.toString(Wind),Double.toString(volts),String.format("%04d",TurbineStatus),String.format("%04d",SystemStatus),String.format("%04d",GridStatus)};
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " OpenEI Data: " + Arrays.toString(data));
 			for (int i=0;i < keys.length;i++) {
 				dataMap.put(keys[i], data[i]);
 			}
@@ -133,7 +123,7 @@ public class WindTurbine {
 			String dataJsonString = gson.toJson(dataMap);
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
 			String urlString = "http://en.openei.org/services/api/2/wfs/w/" + mySerialNum + "?api_key=" + myApiKey + "&" + "json_data=" + jsonString;
-			if (parent.getDebug()) System.out.println(mySysTitle + "OpenEI URL: " + urlString);
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " OpenEI URL: " + urlString);
 			URL url = new URL(urlString);
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -144,29 +134,27 @@ public class WindTurbine {
 				check = s;
 			}
 			if (check != null) {
-				if (parent.getDebug()) System.out.println(mySysTitle + "OpenEI return: " + check);
+				if (parent.getDebug()) parent.debugLog(mySysTitle + " OpenEI return: " + check);
 				if (check.substring(0, 6).equals("{\"Item")) {
 					didWork = 1;
 					System.out.println(mySysTitle + " Data was Successfully sent to OpenEI");
 				}
 				else {
 					didWork = -1;
-					System.out.println(mySysTitle + "OpenEI Error! " + s);
+					System.out.println(mySysTitle + " OpenEI Error! " + s);
 				}
 			}
 			else {
-				System.out.println(mySysTitle + "Unable to connect to OpenEI!" + s );
+				System.out.println(mySysTitle + " Unable to connect to OpenEI!" + s );
 			}
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			parent.errorLog(mySysTitle + "URL ERROR (OpenEI): " +  e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Error executing the  statement: " + e.getMessage());
+			parent.errorLog(mySysTitle + " URL ERROR (OpenEI): " +  Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			parent.errorLog(mySysTitle + "IOException (OpenEI): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "IO exception: " + e.getMessage());
+			parent.errorLog(mySysTitle + " IOException (OpenEI): " + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		return didWork;
@@ -180,23 +168,10 @@ public class WindTurbine {
 	private int sendToLocalDataBase(String baseURL) {
 		int didWork = 0;
 
-		String[] myTime = CurrentDate.split(" ");
-		String[] myDate = myTime[0].split("/");
-		String[] myTimeHMS = myTime[1].split(":");
-
-		int year = Integer.parseInt(myDate[2]);
-		int month = Integer.parseInt(myDate[0]);
-		int day = Integer.parseInt(myDate[1]);
-		int hour = Integer.parseInt(myTimeHMS[0]);
-		int min = Integer.parseInt(myTimeHMS[1]);
-		int sec = Integer.parseInt(myTimeHMS[2]);
-
-		String tempString = year + "-" + month + "-" + day + "%20" + hour + ":" + min + ":" + sec;
 		try {
 			String[] keys = {"turbineID","GMTtime","Day&time","PowerW","DailyKW","TotalKW","RPM","Wind","Volts","Tstat","Sstat","Gstat"};
-
-			String[] data = {mySerialNum,Double.toString(GMT),tempString,Double.toString(power),Double.toString(myDailyTotal),Double.toString(Watts),Double.toString(RPM),Double.toString(Wind),Double.toString(volts),String.format("%04d",ts),String.format("%04d",ss),String.format("%04d",gs)};
-			if (parent.getDebug()) System.out.println(mySysTitle + "LocalDB Data: " + Arrays.toString(data));
+			String[] data = {mySerialNum,Double.toString(LastUploadTime.getTime()),DateString,Double.toString(power),Double.toString(myDailyTotal),Double.toString(Watts),Double.toString(RPM),Double.toString(Wind),Double.toString(volts),String.format("%04d",ts),String.format("%04d",ss),String.format("%04d",gs)};
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " LocalDB Data: " + Arrays.toString(data));
 			Map<String, String> dataMap = new HashMap<String, String>();
 
 			for (int i=0;i < keys.length;i++) {
@@ -207,7 +182,7 @@ public class WindTurbine {
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
 			String urlString = baseURL + "?systemname=" + mySysName + "&" + "json_data=" + jsonString;
 
-			if (parent.getDebug()) System.out.println(mySysTitle + "LocalDB URL: " + urlString);
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " LocalDB URL: " + urlString);
 			URL url = new URL(urlString);
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
@@ -216,26 +191,23 @@ public class WindTurbine {
 			while ((s = br.readLine()) != null) {
 				check = s;
 			}
-			if (parent.getDebug()) System.out.println(mySysTitle + "LocalDB return: " + check);
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " LocalDB return: " + check);
 			if (check.equals("SUCCESS")) {
 				didWork = 1;
 				System.out.println(mySysTitle + " Data was Successfully sent to Local 30s Database (HTTP)");
 			}
 			else {
 				didWork = -1;
-				parent.errorLog(mySysTitle + "Error sending to Local 30s Database (HTTP) " + s);
-				System.out.println(mySysTitle + "Error sending to Local 30s Database (HTTP) " + s);
+				parent.errorLog(mySysTitle + " Error sending to Local 30s Database (HTTP) " + s);
 			}
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			parent.errorLog(mySysTitle + "URL Error (LocalDB): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") +  " " + mySysTitle + "Error executing the  statement: " + e.getMessage());
+			parent.errorLog(mySysTitle + " URL Error (LocalDB): " + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			parent.errorLog(mySysTitle + "IOException (localDB): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "IO exception: " + e.getMessage());
+			parent.errorLog(mySysTitle + " IOException (localDB): " + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		return didWork;
@@ -259,44 +231,41 @@ public class WindTurbine {
 			connection = DriverManager.getConnection(dbURL, username, password);
 		}
 		catch (ClassNotFoundException e) {
-			parent.errorLog(mySysTitle + "Class Error (30sSQL): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + " Database driver not found.");
+			parent.errorLog(mySysTitle + " Class Error (30sSQL): " + Arrays.toString(e.getStackTrace()));
 			return -1;
 		}
 		catch (SQLException e) {
-			parent.errorLog(mySysTitle + " SQL Error on open (30sSQL): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + " Local Error opening the db connection: " + e.getMessage());
+			parent.errorLog(mySysTitle + " SQL Error on open (30sSQL): " + Arrays.toString(e.getStackTrace()));
 			return -1;
 		}
 		try {
 			String myQry = "INSERT into windturbine( \tpower       ,\tvolts,\twindspeed,\ttotalpower,\trpm,\tcurrenttime) VALUES (?,?,?,?,?,?) ";
-			if (parent.getDebug()) System.out.println(mySysTitle + " SQL 30s DB query: " + myQry);
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " SQL 30s DB query: " + myQry);
 			PreparedStatement ps = connection.prepareStatement(myQry);
 			ps.setDouble(1, power);
 			ps.setDouble(2, volts);
 			ps.setDouble(3, Wind);
 			ps.setDouble(4, Watts);
 			ps.setDouble(5, RPM);
-			Timestamp sqlTimestamp = new Timestamp((long) ((GMT + (parent.getGMTOffset()) * 3600.0D) * 1000L));
+			Timestamp sqlTimestamp = new Timestamp(LastUploadTime.getTime());
 			ps.setTimestamp(6, sqlTimestamp);
 
 			System.out.println(mySysTitle + " Trying Backup MySQL Database (30s)...");
 			ps.executeUpdate();
 		}
 		catch (SQLException e) {
-			parent.errorLog(mySysTitle + "SQL Error on send (30sSQL): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Error executing the SQL statement: " + e.getMessage());
+			parent.errorLog(mySysTitle + " SQL Error on send (30sSQL): " + Arrays.toString(e.getStackTrace()));
 			error = -1;
 		}
 		try {
 			connection.close();
 		}
 		catch (SQLException e) {
-			parent.errorLog(mySysTitle + "SQL Error on close(30sSQL): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Error closing the db connection: " + e.getMessage());
+			parent.errorLog(mySysTitle + " SQL Error on close(30sSQL): " + Arrays.toString(e.getStackTrace()));
 		}
 		if (error == 1) {
-			System.out.println(mySysTitle + "Data was Successfully sent to Backup Mysql Database (30s)");
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " Successfully sent data to Mysql Database (30s)");
+			System.out.println(mySysTitle + " Data was Successfully sent to Backup Mysql Database (30s)");
 		}
 		return error;
 	}
@@ -307,7 +276,8 @@ public class WindTurbine {
 	 */
 	private int sendTo10minLocalDatabase() {
 		if (parent.getDBURL().equals("none")) {
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Skipped 10min avg DB send because no DBURL set");
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " Skipped 10min avg DB, no DBURL set");
+			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + " Skipped 10min avg DB send because no DBURL set");
 			return -1;
 		}
 		int didWork = 0;
@@ -316,7 +286,7 @@ public class WindTurbine {
 		Watts = tenMinAvgData[4]
 		RPM = tenMinAvgData[19]
 		Wind = tenMinAvgData[20]*/
-		Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + (parent.getGMTOffset()) * 3600.0D) * 1000L));
+		Timestamp sqlTimestamp = new Timestamp(LastUploadTime.getTime());
 
 		try {
 			String[] keys = {"Day&time","PowerW","TotalKW","RPM","Wind","Volts"};
@@ -331,7 +301,7 @@ public class WindTurbine {
 			String jsonString = URLEncoder.encode(dataJsonString, "UTF-8");
 			String urlString = parent.getDBURL() + "?10minavg=yes&systemname=" + mySysName + "&" + "json_data=" + jsonString;
 
-			if (parent.getDebug()) System.out.println(mySysTitle + "10min URL: " + urlString);
+			if (parent.getDebug()) parent.debugLog(mySysTitle + " 10min URL: " + urlString);
 			URL url = new URL(urlString);
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
@@ -342,21 +312,21 @@ public class WindTurbine {
 			}
 			if (check.equals("SUCCESS")) {
 				didWork = 1;
-				System.out.println(mySysTitle + "Data was Successfully sent to Local 10minAvg Database (HTTP)");
+				if (parent.getDebug()) parent.debugLog(mySysTitle + " Data Successfully sent to 10minAvg DB (HTTP)");
+				System.out.println(mySysTitle + " Data was Successfully sent to Local 10minAvg Database (HTTP)");
 			}
 			else {
 				didWork = -1;
-				parent.errorLog(mySysTitle + "Error sending to Local 10minAvg Database (HTTP) " + s);
-				System.out.println(mySysTitle + "Error sending to Local 10minAvg Database (HTTP) " + s);
+				parent.errorLog(mySysTitle + " Error sending to Local 10minAvg Database (HTTP) " + s);
 			}
 			br.close();
 		}
 		catch (MalformedURLException e) {
-			parent.errorLog(mySysTitle + "URL Error (10mDB): "  + e.getMessage());
+			parent.errorLog(mySysTitle + " URL Error (10mDB): "  + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		catch (IOException e) {
-			parent.errorLog(mySysTitle + "IO Error (10mSQL): "  + e.getMessage());
+			parent.errorLog(mySysTitle + " IO Error (10mSQL): "  + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		return didWork;
@@ -376,7 +346,7 @@ public class WindTurbine {
 				lastLine = inLine;
 			}
 			if (lastLine != null) {
-				if (parent.getDebug()) System.out.println(mySysTitle + "most current turbine data: " + lastLine);
+				if (parent.getDebug()) parent.debugLog(mySysTitle + " most current turbine data: " + lastLine);
 				String[] d = lastLine.split(",");
 				if (d.length > 2) {
 					dailyTot = Double.parseDouble(d[5]);
@@ -385,8 +355,7 @@ public class WindTurbine {
 			inStream.close();
 		}
 		catch (IOException e) {
-			parent.errorLog(mySysTitle + "IO Error (ReadDailyTot): " + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "IOExcepton:");
+			parent.errorLog(mySysTitle + " IO Error (ReadDailyTot): " + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		return dailyTot;
@@ -395,11 +364,11 @@ public class WindTurbine {
 	 * @return Array of doubles containing all turbine data.
 	 * Method to pulling data from Wind Turbine using skzcmd.
 	 */
-	public double[] getskzcmd() {
+	private double[] getskzcmd() {
 		double[] theData = new double[40];
 		Arrays.fill(theData, 0.0);
 		try {
-			double myTime = 0.0D;
+			//double myTime = 0.0D;
 			double pwrTot = 0.0D;
 			int numberOfChar = 0;
 			String OS = System.getProperty("os.name");
@@ -413,14 +382,14 @@ public class WindTurbine {
 
 			PrintWriter MonthlyData = new PrintWriter(new FileWriter(mySysTitle + "_ss" + now("yyyy_MM") + ".csv", true));
 			while ((line = input.readLine()) != null) {
-				if (parent.getDebug()) System.out.println(mySysTitle + "From skzcmd: " + line);
+				if (parent.getDebug()) parent.debugLog(mySysTitle + " From skzcmd: " + line);
 				String[] d = line.split(",");
 				if (d.length >= 2) {
-					if (parent.getDebug()) System.out.println(mySysTitle + "Raw data: " + Arrays.toString(d));
+					if (parent.getDebug()) parent.debugLog(mySysTitle + " Raw data: " + Arrays.toString(d));
 					theData[0] = Double.parseDouble(d[0].replaceAll("\\D", ""));
 					String[] tempd1 = d[1].split(" ");
 					theData[1] = Double.parseDouble(tempd1[0].replaceAll("\\D", ""));
-					theData[2] = Double.parseDouble(tempd1[1]);
+					//theData[2] = Double.parseDouble(tempd1[1]);
 
 					theData[4] = Double.parseDouble(d[2]);
 
@@ -428,22 +397,25 @@ public class WindTurbine {
 						if(ii != 1 && ii != 27 && ii != 28) theData[(ii + 3)] = Double.parseDouble(d[ii]);
 					}
 					numberOfChar = Array.getLength(theData);
-					myTime = theData[2];
+					LastUploadTime = new Date();
+					DateString = DateFormat.format(LastUploadTime);
+					//myTime = theData[2];
 
 					pwrTot = theData[4];
 
 					theData[4] = pwrTot + myPowerOffset;
-					CurrentDate = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + (parent.getGMTOffset()) * 3600.0D) * 1000.0D));
+
+					//CurrentDate = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:z").format(Double.valueOf((myTime + (parent.getGMTOffset()) * 3600.0D) * 1000.0D));
 					int tempHrs = Integer.parseInt(now("HH"));
 					int tempMin = Integer.parseInt(now("mm"));
 					if ((tempHrs == 0) && (tempMin == 0)) {
 						myDailyTotal = 0.0D;
 					}
-					myDailyTotal += (theData[13] * 0.0083333D); //This is 1/120, because there are 120 per hour
-					theData[5] = readDailyTot();
+					myDailyTotal += (theData[13] / 120); //This is 1/120, because there are 120 30s intervals per hour (kWh)
+					theData[5] = myDailyTotal;
 
 					File dataFile = new File(mySysTitle + "_ss" + now("yyyy_MM") + ".csv");
-					if (parent.getDebug()) System.out.println(mySysTitle + "Formatted data: " + Arrays.toString(theData));
+					if (parent.getDebug()) parent.debugLog(mySysTitle + " Formatted data: " + Arrays.toString(theData));
 					if (dataFile.length() > 0) {
 						MonthlyData.println(Arrays.toString(theData));
 					}
@@ -457,7 +429,7 @@ public class WindTurbine {
 			MonthlyData.close();
 			//avg start
 			if (numberOfChar >= 39) {
-				if(parent.getDebug()) System.out.println(mySysTitle + "Adding to avgData: " + Arrays.toString(theData));
+				if(parent.getDebug()) parent.debugLog(mySysTitle + " Adding to avgData: " + Arrays.toString(theData));
 				avgData[avgCount] = theData;
 				avgCount++;
 				if (avgCount == maxAvgCount) {
@@ -483,12 +455,12 @@ public class WindTurbine {
 					}
 				}
 				if (counted && avgCount == 0) {
-					tenMinAvgData[2] = GMT;
+					tenMinAvgData[2] = LastUploadTime.getTime();
 					averagesReadyToPrint = true;
 				}
 				if(parent.getDebug()) {
-					System.out.println(mySysTitle + "Avg count: " + avgCount);
-					System.out.println(mySysTitle + "Avg data: " + Arrays.toString(tenMinAvgData));
+					parent.debugLog(mySysTitle + " Avg count: " + avgCount);
+					parent.debugLog(mySysTitle + " Avg data: " + Arrays.toString(tenMinAvgData));
 				}
 			}
 			//avg end
@@ -500,15 +472,16 @@ public class WindTurbine {
 				PrintWriter TenMinAverageMonthly = new PrintWriter(new FileWriter(mySysTitle + "_tenminaverage_ss" + now("yyyy_MM") + ".csv", true));
 				File dataFile3 = new File(mySysTitle + "_tenminaverage_ss" + now("yyyy_MM") + ".csv");
 				if (dataFile3.length() > 0L) {
-					TenMinAverageMonthly.println(CurrentDate + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
+					TenMinAverageMonthly.println(DateString + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 				}
 				else {
 					TenMinAverageMonthly.println("Date, Power(watts), RPM, Wind(meters/sec), Total Energy(Watt-Hrs)");
-					TenMinAverageMonthly.println(CurrentDate + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
+					TenMinAverageMonthly.println(DateString + ", " + tenMinAvgData[13] + ", " + tenMinAvgData[19] + ", " + tenMinAvgData[20] + ", " + tenMinAvgData[4]);
 				}
 				TenMinAverageMonthly.close();
-
-				sendToDBOptError = sendTo10minLocalDatabase();
+				if (!parent.getDBURL().equals("none") && !mySysName.equals("none")) {
+					sendToDBOptError = sendTo10minLocalDatabase();
+				}
 				if (((sendToDBOptError == -1) || (!parent.getDBURL().equals("none"))) && (!parent.getMySQLURL().equals("none"))) {
 					Connection connection;
 					try {
@@ -519,13 +492,11 @@ public class WindTurbine {
 						connection = DriverManager.getConnection(dbURL, username, password);
 					}
 					catch (ClassNotFoundException e) {
-						parent.errorLog(mySysTitle + "Class Error (10mDB): " + e.getMessage());
-						System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Database driver not found.");
+						parent.errorLog(mySysTitle + " Class Error (Driver not found) (10mDB): " + Arrays.toString(e.getStackTrace()));
 						return null;
 					}
 					catch (SQLException e) {
-						parent.errorLog(mySysTitle + "SQL Error (10minDB): " + e.getMessage());
-						System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Error opening the local db connection: " + e.getMessage());
+						parent.errorLog(mySysTitle + " SQL Error Opening DB Connection(10minDB): " + Arrays.toString(e.getStackTrace()));
 						return null;
 					}
 					try {
@@ -536,30 +507,26 @@ public class WindTurbine {
 						ps.setDouble(3, tenMinAvgData[20]);
 						ps.setDouble(4, tenMinAvgData[4]);
 						ps.setDouble(5, tenMinAvgData[19]);
-						Timestamp sqlTimestamp = new Timestamp((long) ((tenMinAvgData[2] + (parent.getGMTOffset()) * 3600.0D) * 1000L));
+						Timestamp sqlTimestamp = new Timestamp(LastUploadTime.getTime());
 						ps.setTimestamp(6, sqlTimestamp);
-
-						System.out.println(mySysTitle + "Attempting to send to backup MySql Database (10minAvg)...");
+						if (parent.getDebug()) parent.debugLog(mySysTitle + " Sending to backup MySql Database (10minAvg)...");
 						ps.executeUpdate();
 					}
 					catch (SQLException e) {
-						parent.errorLog(mySysTitle + "Error sending to backup MySQL Database (10minAvg): " + e.getMessage());
-						System.out.println(mySysTitle + "Error sending to backup MySQL Database (10minAvg): " + e.getMessage());
+						parent.errorLog(mySysTitle + " Error sending to backup MySQL Database (10minAvg): " + Arrays.toString(e.getStackTrace()));
 					}
 					try {
 						connection.close();
 					}
 					catch (SQLException e) {
-						parent.errorLog(mySysTitle + "Error closing the db connection(10MinAvg): " + e.getMessage());
-						System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Error closing the db connection(10MinAvg): " + e.getMessage());
+						parent.errorLog(mySysTitle + " Error closing the db connection(10MinAvg): " + Arrays.toString(e.getStackTrace()));
 					}
 				}
 				averagesReadyToPrint = false;
 			}
 		}
 		catch (Exception e) {
-			parent.errorLog(mySysTitle + "Unknwon Error (10minAVG): "  + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "Unknown error:");
+			parent.errorLog(mySysTitle + " Unknwon Error (10minAVG): "  + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		return theData;
@@ -588,7 +555,6 @@ public class WindTurbine {
 			gs = (int)values[34];
 			volts = values[6];
 			Wind = values[20];
-			GMT = values[2];
 			KWatts = Watts / 1000.0D;
 			totEnergy = (values[4] / 1000.0D);
 			volts = values[6];
@@ -606,21 +572,20 @@ public class WindTurbine {
 			}
 			if (values[0] != 0.0) {
 				sendToDBError = sendToOpenEIDataBase();
-				if (!parent.getDBURL().equals("none")) {
+				if (!parent.getDBURL().equals("none") && !mySysName.equals("none")) {
 					sendToDBOptError = sendToLocalDataBase(parent.getDBURL());
 				}
-				if (((parent.getDBURL().equals("none")) || (sendToDBOptError == -1)) && (!parent.getMySQLURL().equals("none"))) {
+				if (((parent.getDBURL().equals("none")) || (sendToDBOptError == -1)) && !parent.getMySQLURL().equals("none")) {
 					sendTo30sMysqlDatabase();
 				}
-				System.out.println(now("HH:mm dd MM yyyy") + "** Current Readings For: " + mySysTitle + "**");
+				System.out.println(now("HH:mm:ss dd MM yyyy") + "** Current Readings For: " + mySysTitle + "**");
 				System.out.println("Status[TSG]:" + String.format("%04d",ts) + "," + String.format("%04d",ss) + "," + String.format("%04d",gs) + ", power:" + power + ", RPM:" + RPM + ", Wind:" + wind + ", " + String.format("%s %.2f %s", new Object[] { "Kwatt-Hrs:", Double.valueOf(KWatts), ""}));
-				System.out.println(now("HH:mm dd MM yyyy") + "** 10 min Averages For: " + mySysTitle + "***");
+				System.out.println(now("HH:mm:ss dd MM yyyy") + "** 10 min Averages For: " + mySysTitle + "***");
 				System.out.println(String.format("%s %.2f %s", new Object[] { "Avg_power:", avgpower, ", " }) + String.format("%s %.2f %s", new Object[] { "Avg_RPM:", avgRPM, ", " }) + String.format("%s %.2f", new Object[] { "Avg_Wind:", avgWind }));
 				System.out.println();
-
 				PrintWriter TurbineCurrent = new PrintWriter(new FileWriter(mySysTitle + "_windturbinecurrent.txt"));
 				TurbineCurrent.println("   *** " + mySysTitle + " Current Readings ***   " + "\n");
-				TurbineCurrent.println("Last update: " + CurrentDate);
+				TurbineCurrent.println("Last update: " + DateString);
 				TurbineCurrent.println("Status - Turbine:" + String.format("%04d",ts) + ", System:" + String.format("%04d",ss) + ", Grid:" + String.format("%04d",gs) + "\n");
 				TurbineCurrent.println("power:         " + power + " Watts");
 				TurbineCurrent.println("Turbine Speed: " + RPM + " RPM");
@@ -671,12 +636,13 @@ public class WindTurbine {
 				TurbineMostCurrent.close();
 			}
 			else {
-				System.out.println(mySysTitle + "error: no data from turbine: " + mySysTitle + " ID: " + mySysID);
+				System.out.println(now("HH:mm:ss dd MM yyyy") + " " + mySysTitle + " error: no data from turbine ID: " + mySysID);
+				System.out.println(now("HH:mm:ss dd MM yyyy") + " Is zigbee connected and working?");
+				if (parent.getDebug()) parent.debugLog("Returned array: " + Arrays.toString(values));
 			}
 		}
 		catch (IOException e) {
-			parent.errorLog(mySysTitle + "IO Error (timer): "  + e.getMessage());
-			System.out.println(now("HH:mm dd MM yyyy") + " " + mySysTitle + "IOExcepton:");
+			parent.errorLog(mySysTitle + " IO Error (timer): "  + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 	}

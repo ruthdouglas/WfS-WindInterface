@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Timer;
 
@@ -17,7 +18,7 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Mark McKay, Justin Leis, Ian Mason
- * @version 2.2 OpenEI
+ * @version 2.3 OpenEI
  */
 
 public class windinterface2_openei {
@@ -28,10 +29,7 @@ public class windinterface2_openei {
 	final double voltsConvert = 0.03571428571428571D;
 	final double dayEnergyConvert = 0.2D;
 	//End constants....
-
-	int avgCount = 0; //Used when printing avgs, stores # of avgs collected
-	int maxAvgCount = 20;  //Used when printing avgs (Total possible avgs, 10min * 2 points/min)
-	boolean averagesReadyToPrint = false;  //Used when printing avgs
+	//Variables that aren't specific to a turbine...
 	String myDBURL;
 	String myMySQLURL;
 	String myMySQLUser;
@@ -40,15 +38,17 @@ public class windinterface2_openei {
 	String myPath = "resources/";
 	String windowSystemName;
 	File settings;
-	WindTurbine[] Turbines;
+	WindTurbine Turbine;
 	WindTimerTask TimerTask;
 	Timer timer;
-	int NumTurbines;
 	boolean debug = false;
 	String errorLog;
+	String debugLog;
 	FileWriter errorFileWriter;
+	FileWriter debugFileWriter;
 	PrintWriter errorStream;
-	String WIVersion = "2.3 Release 1";
+	PrintWriter debugStream;
+	String WIVersion = "2.3 Release 2 Single Turbine";
 	String WIName = "OpenEI Wind Interface";
 	public static void main(String[] args) throws AWTException, IOException {
 		new windinterface2_openei(args);
@@ -59,6 +59,8 @@ public class windinterface2_openei {
 	 */
 	public windinterface2_openei(final String[] args) {
 		System.out.println("Initialing....");
+		errorLog = "errorlog.txt";
+		debugLog = "debuglog.txt";
 		try {
 			settings = new File(myPath + "windinterfacepref.xml");
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -66,48 +68,45 @@ public class windinterface2_openei {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document doc = builder.parse(settings);
 			doc.getDocumentElement().normalize();
-			NodeList list = doc.getElementsByTagName("setup");
+			NodeList list = doc.getElementsByTagName("system");
 			if (list.item(0).getNodeType() == 1) {
 				Element element = (Element)list.item(0);
-				NumTurbines = Integer.parseInt(element.getElementsByTagName("num_turbines").item(0).getFirstChild().getNodeValue());
-				Turbines = new WindTurbine[NumTurbines];					
-			}
-			list = doc.getElementsByTagName("system");
-			if (list.item(0).getNodeType() == 1) {
-				Element element = (Element)list.item(0);
-				myDBURL = element.getElementsByTagName("dbURL").item(0).getFirstChild().getNodeValue();
-				if (myDBURL == null | myDBURL == "") { myDBURL = "none"; }
-				myMySQLURL = element.getElementsByTagName("mysqlURL").item(0).getFirstChild().getNodeValue();
-				if (myMySQLURL == null | myMySQLURL == "") { myMySQLURL = "none"; }
-				myMySQLUser = element.getElementsByTagName("mysqlUser").item(0).getFirstChild().getNodeValue();
-				if (myMySQLUser == null | myMySQLUser == "") { myMySQLUser = "none"; }
-				myMySQLPass = element.getElementsByTagName("mysqlPass").item(0).getFirstChild().getNodeValue();
-				if (myMySQLPass == null | myMySQLPass == "") { myMySQLPass = "none"; }
+				if (element.getElementsByTagName("dbURL").item(0) != null && element.getElementsByTagName("dbURL").item(0).getFirstChild() != null) myDBURL = element.getElementsByTagName("dbURL").item(0).getFirstChild().getNodeValue();
+				if (myDBURL == null || myDBURL == "") myDBURL = "none";
+
+				if (element.getElementsByTagName("mysqlURL").item(0) != null && element.getElementsByTagName("mysqlURL").item(0).getFirstChild() != null) myMySQLURL = element.getElementsByTagName("mysqlURL").item(0).getFirstChild().getNodeValue();
+				if (myMySQLURL == null || myMySQLURL == "") myMySQLURL = "none";
+
+				if (element.getElementsByTagName("mysqlUser").item(0) != null && element.getElementsByTagName("mysqlUser").item(0).getFirstChild() != null) myMySQLUser = element.getElementsByTagName("mysqlUser").item(0).getFirstChild().getNodeValue();
+				if (myMySQLUser == null || myMySQLUser == "") myMySQLUser = "none";
+
+				if (element.getElementsByTagName("mysqlPass").item(0) != null && element.getElementsByTagName("mysqlPass").item(0).getFirstChild() != null) myMySQLPass = element.getElementsByTagName("mysqlPass").item(0).getFirstChild().getNodeValue();
+				if (myMySQLPass == null || myMySQLPass == "") myMySQLPass = "none";
+
 				myGMT_Offset = Double.parseDouble(element.getElementsByTagName("gmt_offset").item(0).getFirstChild().getNodeValue());
 				NodeList debugNode = element.getElementsByTagName("debug");
-				if (!(debugNode.item(0) == null)) {
+				if (element.getElementsByTagName("debug").item(0) != null) {
 					debug = Boolean.parseBoolean(debugNode.item(0).getFirstChild().getNodeValue());
 					if (debug) System.out.println("Debug Mode: ENABLED");
-				}	
+				}
 			}
-			errorLog = "errorlog.txt";
-			errorFileWriter = new FileWriter(errorLog,true);
-			errorStream = new PrintWriter(errorFileWriter);
 		}
 		catch (NullPointerException e) {
-			System.out.println("Error reading from config file. Error in system or setup section.");
-			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			System.out.println("Error reading from config file. Are all fields entered/exist?");
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
+			return;
 		}
 		catch (Exception e) {
-			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
+			return;
 		}
-	    Package p = this.getClass().getPackage();
-	    if (p.getSpecificationTitle() != null) WIName = p.getSpecificationTitle();
-	    if (p.getSpecificationVersion()!= null) WIVersion = p.getSpecificationVersion();
+		Package p = this.getClass().getPackage();
+		if (p.getSpecificationTitle() != null) WIName = p.getSpecificationTitle();
+		if (p.getSpecificationVersion()!= null) WIVersion = p.getSpecificationVersion();
 		System.out.println(WIName + " Version: " + WIVersion + " using:");
-		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT+ " + myGMT_Offset);
+		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT- " + myGMT_Offset);
 		System.out.println("Initialization complete.");
 		System.out.println("Loading Turbines.....");
 		loadTurbines();
@@ -126,34 +125,44 @@ public class windinterface2_openei {
 			String SYSTitle, SYSID, SerialNum, SYSName, APIKey;
 			SYSTitle=SYSID=SerialNum=SYSName=APIKey = "none";
 			Double PWROffset = 0.0;
-			for (int n = 0; n < NumTurbines; n++) {
-				NodeList list = doc.getElementsByTagName(String.valueOf((char)(n + 65)));
-				if (list.item(0).getNodeType() == 1) {
-					Element element = (Element)list.item(0);
-					SYSTitle = element.getElementsByTagName("sys_title").item(0).getFirstChild().getNodeValue();
-					SYSID = element.getElementsByTagName("sys_id").item(0).getFirstChild().getNodeValue().replaceAll("\\W", "");
-					SerialNum = element.getElementsByTagName("serial_num").item(0).getFirstChild().getNodeValue().replace("-", "").substring(2);
-					SYSName = element.getElementsByTagName("sys_name").item(0).getFirstChild().getNodeValue();
-					APIKey = element.getElementsByTagName("api_key").item(0).getFirstChild().getNodeValue();
-					String PWRtemp = element.getElementsByTagName("pwr_offset").item(0).getFirstChild().getNodeValue();
-					if (PWRtemp == null | PWRtemp == "") { PWROffset = 0D; }
-					else{ PWROffset = Double.parseDouble(PWRtemp); }
+			NodeList list = doc.getElementsByTagName("system");
+			if (list.item(0).getNodeType() == 1) {
+				Element element = (Element)list.item(0);
+				SYSTitle = element.getElementsByTagName("sys_title").item(0).getFirstChild().getNodeValue();
+				SYSID = element.getElementsByTagName("sys_id").item(0).getFirstChild().getNodeValue().replaceAll("\\W", "");
+				SerialNum = element.getElementsByTagName("serial_num").item(0).getFirstChild().getNodeValue().replace("-", "");
+
+				if (element.getElementsByTagName("sys_name").item(0) != null && element.getElementsByTagName("sys_name").item(0).getFirstChild() != null) SYSName = element.getElementsByTagName("sys_name").item(0).getFirstChild().getNodeValue();
+				if (SYSName == null || SYSName == "" || SYSName == "none") {
+					if (!myDBURL.equals("none")) {
+						System.out.println("ERROR: dbURL specificed but no sys_name set!!!");
+						return;
+					}
+					SYSName = "none";
 				}
-				System.out.println(SYSTitle + ", " + SYSName + ", " + SYSID + ", " + SerialNum + ", " + APIKey + ", " + PWROffset);
-				Turbines[n] = new WindTurbine(this, SYSTitle, SYSName, SYSID, SerialNum, APIKey, PWROffset);
-				TimerTask = new WindTimerTask();
-				TimerTask.init(Turbines);
-				timer = new Timer();
-				timer.schedule(TimerTask, 0L, 30000L); //Run for 30s with 0s delay....
-			} //end turbine loop
+
+				APIKey = element.getElementsByTagName("api_key").item(0).getFirstChild().getNodeValue();
+
+				String PWRtemp = "";
+				if (element.getElementsByTagName("pwr_offset").item(0) != null && element.getElementsByTagName("pwr_offset").item(0).getFirstChild() != null) PWRtemp = element.getElementsByTagName("pwr_offset").item(0).getFirstChild().getNodeValue();
+				if (PWRtemp == null || PWRtemp == "") { PWROffset = 0D; }
+				else{ PWROffset = Double.parseDouble(PWRtemp); }
+			}
+			if (!SerialNum.substring(0,2).equalsIgnoreCase("30")) SerialNum = SerialNum.substring(2);
+			System.out.println(SYSTitle + ", " + SYSName + ", " + SYSID + ", " + SerialNum + ", " + APIKey + ", " + PWROffset);
+			Turbine = new WindTurbine(this, SYSTitle, SYSName, SYSID, SerialNum, APIKey, PWROffset);
+			TimerTask = new WindTimerTask();
+			TimerTask.init(Turbine);
+			timer = new Timer();
+			timer.scheduleAtFixedRate(TimerTask, 0, 30000); //Run for 30s with 0s delay....
 		}
 		catch (NullPointerException e) {
 			System.out.println("Error reading from config file. Check turbine count? Check all field have values?");
-			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		catch (Exception e) {
-			errorLog(now("HH:mm dd MM yyyy") + e.getMessage());
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 		}
 		System.out.println("Loaded Turbines.");
@@ -180,14 +189,6 @@ public class windinterface2_openei {
 		return myPath;
 	}
 	/**
-	 * @return Returns the GMT offset from XML settings.
-	 * Getter mothod for the GMT offset from XML settings. This should be positive in the US since this the time is already
-	 * in local time, but needs to be in GMT.
-	 */
-	public Double getGMTOffset () {
-		return myGMT_Offset;
-	}
-	/**
 	 * @return Returns the MySQL Username from XML.
 	 * Getter method for the MySQL Username.
 	 */
@@ -207,9 +208,31 @@ public class windinterface2_openei {
 	 */
 	public void errorLog(String s) {
 		if (s != null && s != "") {
-			errorStream = new PrintWriter(errorFileWriter);
-			errorStream.append("\n" + now("HH:mm dd MM yyyy") + " " + s);
-			errorStream.close();
+			try {
+				errorFileWriter = new FileWriter(errorLog,true);
+				errorStream = new PrintWriter(errorFileWriter);
+				errorStream.append("\n" + now("HH:mm:ss dd MM yyyy") + " " + s);
+				errorStream.close();
+				errorFileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			if (getDebug()) debugLog(s);
+			else System.out.println(now("HH:mm:ss dd MM yyyy") + " " + s);
+		}
+	}
+	public void debugLog(String s) {
+		if (s != null && s != "") {
+			try {
+				debugFileWriter = new FileWriter(debugLog,true);
+				debugStream = new PrintWriter(debugFileWriter);
+				debugStream.append("\n" + now("HH:mm:ss dd MM yyyy") + " " + s);
+				debugStream.close();
+				debugFileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println(now("HH:mm:ss dd MM yyyy") + " " + s);
 		}
 	}
 	/**
