@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Sample config:
+Please note, since names can not start with numbers, letter A-Z must
+be used to name turbines (CAPS!)
+Modify all needed fields, and Remove B, or add C as needed.
+<turbine>
+	<setup>
+		<num_turbines>2</num_turbines>
+	</setup>
+	<A>
+		<sys_title>Turbine 1</sys_title>
+		<sys_id>123abc</sys_id>
+		<serial_num>2014-0001</serial_num>
+		<sys_name>test1</sys_name>
+		<api_key>ABCDEFGHI-1234-56789-JKLM-NOPQRSTUVWXYZ</api_key>
+		<pwr_offset>100</pwr_offset>
+	</A>
+	<B>
+		<sys_title>Turbine 2</sys_title>
+		<sys_id>321def</sys_id>
+		<serial_num>2014-0002</serial_num>
+		<sys_name>test2</sys_name>
+		<api_key>ABCDEFGHI-1234-56789-JKLM-NOPQRSTUVWXYZ</api_key>
+		<pwr_offset>0</pwr_offset>
+	</B>
+	<system>
+		<dbURL>none</dbURL>
+		<mysqlURL>none</mysqlURL>
+		<mysqlUser>none</mysqlUser>
+		<mysqlPass>none</mysqlPass>
+		<gmt_offset>7.0</gmt_offset>
+	</system>
+</turbine>
+End Sample-->
+<turbine>
+	<setup>
+		<num_turbines>2</num_turbines>
+	</setup>
+	<A>
+		<sys_title>Northern Arizona University ARD SkyStream</sys_title>
+		<sys_id>405cf2ee</sys_id>
+		<serial_num>3011-0584</serial_num>
+		<sys_name>20ard12</sys_name>
+		<api_key>A31259F1-B3D9-4D78-A6E2-9111C921B480</api_key>
+		<pwr_offset>0</pwr_offset>
+	</A>
+	<B>
+		<sys_title>Northern Arizona University ARD SkyStream2</sys_title>
+		<sys_id>405cf2ef</sys_id>
+		<serial_num>2011-0585</serial_num>
+		<sys_name>20ard13</sys_name>
+		<api_key>A31259F1-B3D9-4D78-A6E2-9111C921B481</api_key>
+		<pwr_offset>100</pwr_offset>
+	</B>
+	<system>
+		<dbURL>none</dbURL>
+		<mysqlURL>none</mysqlURL>
+		<mysqlUser>none</mysqlUser>
+		<mysqlPass>none</mysqlPass>
+		<gmt_offset>7.0</gmt_offset></system>
+</turbine>
+<!--
+	V. 3
+	Updated 10/20/2014
+-->

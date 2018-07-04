@@ -19,7 +19,11 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Mark McKay, Justin Leis, Ian Mason
+<<<<<<< HEAD
  * @version 2.3.2 OpenEI
+=======
+ * @version 2.3 OpenEI
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
  */
 
 public class windinterface2_openei {
@@ -31,6 +35,7 @@ public class windinterface2_openei {
 	final double speedConvert = 1.125D;
 	final double powerConvert = 0.12D;
 	final double voltsConvert = 0.03571428571428571D;
+<<<<<<< HEAD
 
 	final double dayEnergyConvert = 0.2D;
 	// End constants....
@@ -38,6 +43,11 @@ public class windinterface2_openei {
 							int maxAvgCount = 20; // Used when printing avgs (Total possible avgs, 10min
 	// * 2 points/min)
 	boolean averagesReadyToPrint = false; // Used when printing avgs
+=======
+	final double dayEnergyConvert = 0.2D;
+	//End constants....
+	//Variables that aren't specific to a turbine...
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 	String myDBURL;
 	String myMySQLURL;
 	String myMySQLUser;
@@ -46,10 +56,9 @@ public class windinterface2_openei {
 	String myPath = "resources/";
 	String windowSystemName;
 	File settings;
-	WindTurbine[] Turbines;
+	WindTurbine Turbine;
 	WindTimerTask TimerTask;
 	Timer timer;
-	int NumTurbines;
 	boolean debug = false;
 	String errorLog;
 	String debugLog;
@@ -57,8 +66,12 @@ public class windinterface2_openei {
 	FileWriter debugFileWriter;
 	PrintWriter errorStream;
 	PrintWriter debugStream;
+<<<<<<< HEAD
 	String WIVersion = "2.3 Release 3 Multi-Turbine";
 
+=======
+	String WIVersion = "2.3 Release 2 Single Turbine";
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 	String WIName = "OpenEI Wind Interface";
 
 	/**
@@ -78,6 +91,7 @@ public class windinterface2_openei {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document doc = builder.parse(settings);
 			doc.getDocumentElement().normalize();
+<<<<<<< HEAD
 			NodeList list = doc.getElementsByTagName("setup");
 			if (list.item(0).getNodeType() == 1) {
 				Element element = (Element) list.item(0);
@@ -127,11 +141,44 @@ public class windinterface2_openei {
 			e.printStackTrace();
 			return;
 		} catch (Exception e) {
+=======
+			NodeList list = doc.getElementsByTagName("system");
+			if (list.item(0).getNodeType() == 1) {
+				Element element = (Element)list.item(0);
+				if (element.getElementsByTagName("dbURL").item(0) != null && element.getElementsByTagName("dbURL").item(0).getFirstChild() != null) myDBURL = element.getElementsByTagName("dbURL").item(0).getFirstChild().getNodeValue();
+				if (myDBURL == null || myDBURL == "") myDBURL = "none";
+
+				if (element.getElementsByTagName("mysqlURL").item(0) != null && element.getElementsByTagName("mysqlURL").item(0).getFirstChild() != null) myMySQLURL = element.getElementsByTagName("mysqlURL").item(0).getFirstChild().getNodeValue();
+				if (myMySQLURL == null || myMySQLURL == "") myMySQLURL = "none";
+
+				if (element.getElementsByTagName("mysqlUser").item(0) != null && element.getElementsByTagName("mysqlUser").item(0).getFirstChild() != null) myMySQLUser = element.getElementsByTagName("mysqlUser").item(0).getFirstChild().getNodeValue();
+				if (myMySQLUser == null || myMySQLUser == "") myMySQLUser = "none";
+
+				if (element.getElementsByTagName("mysqlPass").item(0) != null && element.getElementsByTagName("mysqlPass").item(0).getFirstChild() != null) myMySQLPass = element.getElementsByTagName("mysqlPass").item(0).getFirstChild().getNodeValue();
+				if (myMySQLPass == null || myMySQLPass == "") myMySQLPass = "none";
+
+				myGMT_Offset = Double.parseDouble(element.getElementsByTagName("gmt_offset").item(0).getFirstChild().getNodeValue());
+				NodeList debugNode = element.getElementsByTagName("debug");
+				if (element.getElementsByTagName("debug").item(0) != null) {
+					debug = Boolean.parseBoolean(debugNode.item(0).getFirstChild().getNodeValue());
+					if (debug) System.out.println("Debug Mode: ENABLED");
+				}
+			}
+		}
+		catch (NullPointerException e) {
+			System.out.println("Error reading from config file. Are all fields entered/exist?");
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
+			e.printStackTrace();
+			return;
+		}
+		catch (Exception e) {
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
 			return;
 		}
 		Package p = this.getClass().getPackage();
+<<<<<<< HEAD
 		if (p.getSpecificationTitle() != null)
 			WIName = p.getSpecificationTitle();
 		if (p.getSpecificationVersion() != null)
@@ -139,6 +186,12 @@ public class windinterface2_openei {
 		System.out.println(WIName + " Version: " + WIVersion + " using:");
 		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT- "
 				+ myGMT_Offset);
+=======
+		if (p.getSpecificationTitle() != null) WIName = p.getSpecificationTitle();
+		if (p.getSpecificationVersion()!= null) WIVersion = p.getSpecificationVersion();
+		System.out.println(WIName + " Version: " + WIVersion + " using:");
+		System.out.println("dbURL: " + myDBURL + ", mySQLURL: " + myMySQLURL + ", mySQLUser: " + myMySQLUser + ", GMT- " + myGMT_Offset);
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 		System.out.println("Initialization complete.");
 		System.out.println("Loading Turbines.....");
 		loadTurbines();
@@ -164,6 +217,7 @@ public class windinterface2_openei {
 	 *            String to be saved to the error log. Method for logging errors
 	 *            to errorlog.txt
 	 */
+<<<<<<< HEAD
 	public void errorLog(String s) {
 		if (s != null && s != "") {
 			try {
@@ -179,6 +233,57 @@ public class windinterface2_openei {
 				debugLog(s);
 			else
 				System.out.println(now("HH:mm:ss dd MM yyyy") + " " + s);
+=======
+	void loadTurbines() {
+		try {
+			File file = new File(myPath + "windinterfacepref.xml");
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(file);
+			doc.getDocumentElement().normalize();
+			String SYSTitle, SYSID, SerialNum, SYSName, APIKey;
+			SYSTitle=SYSID=SerialNum=SYSName=APIKey = "none";
+			Double PWROffset = 0.0;
+			NodeList list = doc.getElementsByTagName("system");
+			if (list.item(0).getNodeType() == 1) {
+				Element element = (Element)list.item(0);
+				SYSTitle = element.getElementsByTagName("sys_title").item(0).getFirstChild().getNodeValue();
+				SYSID = element.getElementsByTagName("sys_id").item(0).getFirstChild().getNodeValue().replaceAll("\\W", "");
+				SerialNum = element.getElementsByTagName("serial_num").item(0).getFirstChild().getNodeValue().replace("-", "");
+
+				if (element.getElementsByTagName("sys_name").item(0) != null && element.getElementsByTagName("sys_name").item(0).getFirstChild() != null) SYSName = element.getElementsByTagName("sys_name").item(0).getFirstChild().getNodeValue();
+				if (SYSName == null || SYSName == "" || SYSName == "none") {
+					if (!myDBURL.equals("none")) {
+						System.out.println("ERROR: dbURL specificed but no sys_name set!!!");
+						return;
+					}
+					SYSName = "none";
+				}
+
+				APIKey = element.getElementsByTagName("api_key").item(0).getFirstChild().getNodeValue();
+
+				String PWRtemp = "";
+				if (element.getElementsByTagName("pwr_offset").item(0) != null && element.getElementsByTagName("pwr_offset").item(0).getFirstChild() != null) PWRtemp = element.getElementsByTagName("pwr_offset").item(0).getFirstChild().getNodeValue();
+				if (PWRtemp == null || PWRtemp == "") { PWROffset = 0D; }
+				else{ PWROffset = Double.parseDouble(PWRtemp); }
+			}
+			if (!SerialNum.substring(0,2).equalsIgnoreCase("30")) SerialNum = SerialNum.substring(2);
+			System.out.println(SYSTitle + ", " + SYSName + ", " + SYSID + ", " + SerialNum + ", " + APIKey + ", " + PWROffset);
+			Turbine = new WindTurbine(this, SYSTitle, SYSName, SYSID, SerialNum, APIKey, PWROffset);
+			TimerTask = new WindTimerTask();
+			TimerTask.init(Turbine);
+			timer = new Timer();
+			timer.scheduleAtFixedRate(TimerTask, 0, 30000); //Run for 30s with 0s delay....
+		}
+		catch (NullPointerException e) {
+			System.out.println("Error reading from config file. Check turbine count? Check all field have values?");
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
+			e.printStackTrace();
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 		}
 	}
 
@@ -207,6 +312,7 @@ public class windinterface2_openei {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * @return Returns the MySQL Database URL. Getter method for the MySQL
 	 *         Database URL.
 	 */
@@ -217,6 +323,10 @@ public class windinterface2_openei {
 	/**
 	 * @return Returns the MySQL Username from XML. Getter method for the MySQL
 	 *         Username.
+=======
+	 * @return Returns the MySQL Username from XML.
+	 * Getter method for the MySQL Username.
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 	 */
 	public String getMySQLUser() {
 		return myMySQLUser;
@@ -234,6 +344,7 @@ public class windinterface2_openei {
 	 * This method loads turbine setting data, and passed it to the WindTurbine
 	 * class
 	 */
+<<<<<<< HEAD
 	void loadTurbines() {
 		try {
 			File file = new File(myPath + "windinterfacepref.xml");
@@ -295,6 +406,35 @@ public class windinterface2_openei {
 		} catch (Exception e) {
 			errorLog(now("HH:mm dd MM yyyy") + Arrays.toString(e.getStackTrace()));
 			e.printStackTrace();
+=======
+	public void errorLog(String s) {
+		if (s != null && s != "") {
+			try {
+				errorFileWriter = new FileWriter(errorLog,true);
+				errorStream = new PrintWriter(errorFileWriter);
+				errorStream.append("\n" + now("HH:mm:ss dd MM yyyy") + " " + s);
+				errorStream.close();
+				errorFileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			if (getDebug()) debugLog(s);
+			else System.out.println(now("HH:mm:ss dd MM yyyy") + " " + s);
+		}
+	}
+	public void debugLog(String s) {
+		if (s != null && s != "") {
+			try {
+				debugFileWriter = new FileWriter(debugLog,true);
+				debugStream = new PrintWriter(debugFileWriter);
+				debugStream.append("\n" + now("HH:mm:ss dd MM yyyy") + " " + s);
+				debugStream.close();
+				debugFileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println(now("HH:mm:ss dd MM yyyy") + " " + s);
+>>>>>>> e2369ab1c56cc94a62d696a96d2cc83d54ba214c
 		}
 		System.out.println("Loaded Turbines.");
 	}
